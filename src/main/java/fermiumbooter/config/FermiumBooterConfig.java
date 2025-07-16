@@ -2,6 +2,10 @@ package fermiumbooter.config;
 
 import fermiumbooter.FermiumBooter;
 import net.minecraftforge.common.config.Config;
+import net.minecraftforge.common.config.ConfigManager;
+import net.minecraftforge.fml.client.event.ConfigChangedEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 @Config(modid = FermiumBooter.MODID)
 public class FermiumBooterConfig {
@@ -17,4 +21,25 @@ public class FermiumBooterConfig {
 	@Config.Name("Override Mixin Config Compatibility Checks")
 	@Config.RequiresMcRestart
 	public static boolean overrideMixinCompatibilityChecks = false;
+	
+	@Config.Comment("Mixin config json files to forcibly early enqueue, to allow for simple compatibility with older mods that fail to enqueue their mixins")
+	@Config.Name("Forced Early Mixin Config Additions")
+	@Config.RequiresMcRestart
+	public static String[] forcedEarlyMixinConfigAdditions = {};
+	
+	@Config.Comment("Mixin config json files to forcibly remove from FermiumBooter enqueue")
+	@Config.Name("Forced Early Mixin Config Removals")
+	@Config.RequiresMcRestart
+	public static String[] forcedEarlyMixinConfigRemovals = {};
+	
+	@Mod.EventBusSubscriber(modid = FermiumBooter.MODID)
+	private static class ConfigSyncHandler {
+		
+		@SubscribeEvent
+		public static void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
+			if(event.getModID().equals(FermiumBooter.MODID)) {
+				ConfigManager.sync(FermiumBooter.MODID, Config.Type.INSTANCE);
+			}
+		}
+	}
 }
