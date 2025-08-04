@@ -198,14 +198,14 @@ public class ASMClassVisitor extends ClassVisitor {
 					if(modid == null || modid.isEmpty()) continue;
 					Boolean desired = (Boolean)compatHandlingVisitor.getValues().get("desired");
 					if(desired == null) desired = true;
-					Boolean required = (Boolean)compatHandlingVisitor.getValues().get("required");
-					if(required == null) required = true;
 					Boolean disableMixin = (Boolean)compatHandlingVisitor.getValues().get("disableMixin");
 					if(disableMixin == null) disableMixin = true;
+					Boolean warnIngame = (Boolean)compatHandlingVisitor.getValues().get("warnIngame");
+					if(warnIngame == null) warnIngame = true;
 					String reason = (String)compatHandlingVisitor.getValues().get("reason");
 					if(reason == null) reason = "";
 					
-					this.compatHandlingAnnotations.add(new CompatHandlingAnnotation(modid, desired, required, disableMixin, reason));
+					this.compatHandlingAnnotations.add(new CompatHandlingAnnotation(modid, desired, disableMixin, warnIngame, reason));
 				}
 			}
 		}
@@ -215,15 +215,15 @@ public class ASMClassVisitor extends ClassVisitor {
 		
 		public final String modid;
 		public final boolean desired;
-		public final boolean required;
 		public final boolean disableMixin;
+		public final boolean warnIngame;
 		public final String reason;
 		
-		public CompatHandlingAnnotation(String modid, boolean desired, boolean required, boolean disableMixin, String reason) {
+		public CompatHandlingAnnotation(String modid, boolean desired, boolean disableMixin, boolean warnIngame, String reason) {
 			this.modid = modid;
 			this.desired = desired;
-			this.required = required;
 			this.disableMixin = disableMixin;
+			this.warnIngame = warnIngame;
 			this.reason = reason;
 		}
 	}

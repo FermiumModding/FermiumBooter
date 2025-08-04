@@ -39,8 +39,8 @@ public @interface MixinConfig {
 	 * If checks fail a specific warning will be logged and a general warning will display on screen
 	 * modid: ModID of the target mod
 	 * desired: Whether the target mod is desired - true is treated as a dependency, false is treated as an incompatibility
-	 * required: true is treated as a hard dependency/incompatibility, false as an optional dependency / optional incompatibility. Optional failed compat checks will not log/render warnings
 	 * disableMixin: If the check fails, true will disable the annotated mixin(s), false will only log a warning
+	 * warnIngame: If the check fails, true will render a warning ingame, false will only log a warning
 	 * reason: Reasoning to print to the log to give additional context to the relation if the check fails
 	 */
 	@Retention(RetentionPolicy.RUNTIME)
@@ -49,8 +49,8 @@ public @interface MixinConfig {
 	@interface CompatHandling {
 		String modid();
 		boolean desired();
-		boolean required();
 		boolean disableMixin() default true;
+		boolean warnIngame() default true;
 		String reason() default "Undefined";
 	}
 	

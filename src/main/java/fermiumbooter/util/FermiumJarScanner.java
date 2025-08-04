@@ -195,17 +195,15 @@ public abstract class FermiumJarScanner {
 				if(!skipCompatHandlingChecks()) {
 					for(ASMClassVisitor.CompatHandlingAnnotation compatAnno : parsedField.compatHandlingAnnotations) {
 						if(compatAnno.desired != isModPresent(compatAnno.modid)) {
-							if(compatAnno.disableMixin)
+							if(compatAnno.warnIngame) warningCount++;
+							if(compatAnno.disableMixin) {
 								shouldApply = false;
-
-							if(compatAnno.required) {
-								warningCount++;
-								if (compatAnno.disableMixin)
-									LOGGER.log(Level.ERROR, "FermiumMixinConfig config {} from {} disabled as incompatible {} {}: {}.",
-											parsedField.configFieldName, mixinConfigName, (compatAnno.desired ? "without" : "with"), compatAnno.modid, compatAnno.reason);
-								else
-									LOGGER.log(Level.WARN, "FermiumMixinConfig config {} from {} may have issues {} {}: {}.",
-											parsedField.configFieldName, mixinConfigName, (compatAnno.desired ? "without" : "with"), compatAnno.modid, compatAnno.reason);
+								LOGGER.log(Level.ERROR, "FermiumMixinConfig config {} from {} disabled as incompatible {} {}: {}.", parsedField.configFieldName, mixinConfigName, (
+										compatAnno.desired ? "without" : "with"), compatAnno.modid, compatAnno.reason);
+							}
+							else {
+								LOGGER.log(Level.WARN, "FermiumMixinConfig config {} from {} may have issues {} {}: {}.", parsedField.configFieldName, mixinConfigName, (
+										compatAnno.desired ? "without" : "with"), compatAnno.modid, compatAnno.reason);
 							}
 						}
 					}
