@@ -22,11 +22,6 @@ public class FermiumBooterConfig {
 	@Config.RequiresMcRestart
 	public static boolean overrideMixinCompatibilityChecks = false;
 	
-	@Config.Comment("Mixin config json files to forcibly early enqueue, to allow for simple compatibility with older mods that fail to enqueue their mixins")
-	@Config.Name("Forced Early Mixin Config Additions")
-	@Config.RequiresMcRestart
-	public static String[] forcedEarlyMixinConfigAdditions = {};
-	
 	@Config.Comment("Mixin config json files to forcibly remove from FermiumBooter enqueue")
 	@Config.Name("Forced Early Mixin Config Removals")
 	@Config.RequiresMcRestart

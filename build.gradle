@@ -7,7 +7,7 @@ buildscript {
             url = 'https://repo.spongepowered.org/maven'
         }
         maven {
-            url "https://plugins.gradle.org/m2/"
+            url = "https://plugins.gradle.org/m2/"
         }
         mavenCentral()
     }
@@ -35,13 +35,29 @@ minecraft {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
+repositories {
+    maven {
+        url = "https://maven.bawnorton.com/releases"
+    }
+    flatDir {
+        dirs 'libs\\'
+    }
+    mavenCentral()
+}
+
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    shadow 'io.github.llamalad7:mixinextras-common:0.4.1'
+    //https://github.com/fonnymunkey/SpongeMixin
+    //Temporarily shadow patched version of 0.8.7 that fixes compat with old mods, return to mainline when 0.8.8 merges https://github.com/SpongePowered/Mixin/pull/678
+    shadow files('libs/mixin-0.8.7.jar')
+    annotationProcessor files('libs/mixin-0.8.7-processor.jar')
 
-    shadow 'org.spongepowered:mixin:0.8.7'
-    annotationProcessor 'org.spongepowered:mixin:0.8.7:processor'
+    shadow 'io.github.llamalad7:mixinextras-common:0.5.0'
+    annotationProcessor 'io.github.llamalad7:mixinextras-common:0.5.0'
+
+    shadow 'com.github.bawnorton.mixinsquared:mixinsquared-common:0.3.3'
+    annotationProcessor 'com.github.bawnorton.mixinsquared:mixinsquared-common:0.3.3'
 }
 
 mixin {
