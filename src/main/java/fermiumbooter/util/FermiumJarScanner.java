@@ -198,11 +198,11 @@ public abstract class FermiumJarScanner {
 							if(compatAnno.warnIngame) warningCount++;
 							if(compatAnno.disableMixin) {
 								shouldApply = false;
-								LOGGER.log(Level.ERROR, "FermiumMixinConfig config {} from {} disabled as incompatible {} {}: {}.", parsedField.configFieldName, mixinConfigName, (
+								CustomLogger.LOGGER.log(Level.ERROR, "FermiumMixinConfig config \"{}\" from {} disabled as incompatible {} {}: {}.", parsedField.configFieldName, mixinConfigName, (
 										compatAnno.desired ? "without" : "with"), compatAnno.modid, compatAnno.reason);
 							}
 							else {
-								LOGGER.log(Level.WARN, "FermiumMixinConfig config {} from {} may have issues {} {}: {}.", parsedField.configFieldName, mixinConfigName, (
+								CustomLogger.LOGGER.log(Level.WARN, "FermiumMixinConfig config \"{}\" from {} may have issues {} {}: {}.", parsedField.configFieldName, mixinConfigName, (
 										compatAnno.desired ? "without" : "with"), compatAnno.modid, compatAnno.reason);
 							}
 						}

@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import com.llamalad7.mixinextras.MixinExtrasBootstrap;
+import fermiumbooter.util.CustomLogger;
 import fermiumbooter.util.FermiumJarScanner;
 import fermiumbooter.util.ForcedConfigHandler;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
@@ -55,6 +56,8 @@ public class FermiumPlugin implements IFMLLoadingPlugin {
 	 */
 	@Override
 	public void injectData(Map<String, Object> data) {
+		CustomLogger.init();
+
 		//Handle caching now if it hasn't already
 		FermiumJarScanner.handleCaching();
 		//Clear larger cached jar scanner fields cause why not
