@@ -56,7 +56,7 @@ public class CustomLogger {
         appender.start();
         config.addAppender(appender);
 
-        config.getRootLogger().addAppender(appender, Level.ERROR, new AbstractFilter(){
+        config.getRootLogger().addAppender(appender, Level.WARN, new AbstractFilter(){
             @Override public Result filter(LogEvent event) {
                 if(event.getMessage() == null) return Result.DENY;
                 if(event.getMessage().getFormattedMessage().startsWith("FermiumMixinConfig")) return Result.ACCEPT;
