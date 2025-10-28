@@ -1,6 +1,7 @@
 package fermiumbooter.config;
 
 import fermiumbooter.FermiumBooter;
+import fermiumbooter.annotations.MixinConfig;
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
@@ -8,6 +9,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 @Config(modid = FermiumBooter.MODID)
+@MixinConfig(name = FermiumBooter.MODID)
 public class FermiumBooterConfig {
 	
 	@Config.Comment("Prevents the mixin compatibility warning text from rendering on screen" + "\n" +
@@ -26,6 +28,12 @@ public class FermiumBooterConfig {
 	@Config.Name("Forced Early Mixin Config Removals")
 	@Config.RequiresMcRestart
 	public static String[] forcedEarlyMixinConfigRemovals = {};
+	
+	@Config.Comment("Appends prior mixin exceptions to crash reports to help diagnose crashes")
+	@Config.Name("Append General Mixin Exceptions To Crash Reports")
+	@Config.RequiresMcRestart
+	@MixinConfig.MixinToggle(earlyMixin = "mixins.fermiumbooter.crashreport.json", defaultValue = true)
+	public static boolean appendGeneralMixinExceptionsToCrashReports = true;
 	
 	@Mod.EventBusSubscriber(modid = FermiumBooter.MODID)
 	private static class ConfigSyncHandler {

@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "fermiumbooter.mixin",
+  "refmap": "mixins.fermiumbooter.refmap.json",
+  "compatibilityLevel": "JAVA_8",
+  "target": "@env(DEFAULT)",
+  "minVersion": "0.8",
+  "mixins": [
+    "CrashReportAppender"
+  ],
+  "injectors": {
+    "maxShiftBy": 10
+  }
+}
