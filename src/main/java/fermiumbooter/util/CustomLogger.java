@@ -28,7 +28,7 @@ public class CustomLogger {
     public static final Set<String> mixinErrors = Collections.synchronizedSet(new HashSet<>());
 
     public static void init() {
-        LOG_PATH = Paths.get(Launch.minecraftHome.getPath(), "logs", LOGGER_NAME + ".log");
+        LOG_PATH = Paths.get("logs", LOGGER_NAME + ".log");
         try { Files.createDirectories(LOG_PATH.getParent()); }
         catch(IOException ignored) {}
         
