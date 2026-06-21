@@ -3,27 +3,19 @@ package fermiumbooter.core;
 import fermiumbooter.api.CompatHandling;
 import net.minecraftforge.fml.loading.LoadingModList;
 import net.minecraftforge.forgespi.language.IModInfo;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.apache.maven.artifact.versioning.VersionRange;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
  * Checks mod dependencies and version requirements.
  */
 public class ModDependencyChecker {
-    private static final Logger LOGGER = LogManager.getLogger("FermiumBooter");
 
-    /**
-     * Checks if a mod dependency is satisfied.
-     *
-     * @param dependency The dependency to check
-     * @return true if the dependency is satisfied
-     */
-    public boolean checkDependency(CompatHandling dependency) {
+    public static boolean testDependency(CompatHandling dependency) {
         String modid = dependency.modid();
         String modName = dependency.modName();
         String versionRange = dependency.versionRange();
@@ -34,7 +26,7 @@ public class ModDependencyChecker {
                 .findFirst();
 
         if (modInfo.isEmpty()) {
-            LOGGER.debug("Mod dependency not satisfied: {} not found", modid);
+            FermiumBooterPlugin.LOGGER.debug("Mod dependency not satisfied: {} not found", modid);
             return false;
         }
 
@@ -42,7 +34,7 @@ public class ModDependencyChecker {
 
         // Check mod name if specified
         if (!modName.isEmpty() && !mod.getDisplayName().equals(modName)) {
-            LOGGER.debug("Mod dependency not satisfied: {} found but name doesn't match (expected: {}, got: {})",
+            FermiumBooterPlugin.LOGGER.debug("Mod dependency not satisfied: {} found but name doesn't match (expected: {}, got: {})",
                     modid, modName, mod.getDisplayName());
             return false;
         }
@@ -54,29 +46,21 @@ public class ModDependencyChecker {
                 ArtifactVersion modVersion = new DefaultArtifactVersion(mod.getVersion().toString());
 
                 if (!range.containsVersion(modVersion)) {
-                    LOGGER.debug("Mod dependency not satisfied: {} version {} not in range {}",
+                    FermiumBooterPlugin.LOGGER.debug("Mod dependency not satisfied: {} version {} not in range {}",
                             modid, modVersion, versionRange);
                     return false;
                 }
             } catch (Exception e) {
-                LOGGER.error("Invalid version range '{}' for mod {}", versionRange, modid, e);
+                FermiumBooterPlugin.LOGGER.error("Invalid version range '{}' for mod {}", versionRange, modid, e);
                 return false;
             }
         }
 
-        LOGGER.debug("Mod dependency satisfied: {} ({})", modid, mod.getVersion());
+        FermiumBooterPlugin.LOGGER.debug("Mod dependency satisfied: {} ({})", modid, mod.getVersion());
         return true;
     }
 
-    /**
-     * Checks if all dependencies in an array are satisfied.
-     */
-    public boolean checkAllDependencies(CompatHandling[] dependencies) {
-        for (CompatHandling dep : dependencies) {
-            if (!checkDependency(dep)) {
-                return false;
-            }
-        }
-        return true;
+    public static boolean checkAllDependencies(CompatHandling[] dependencies) {
+        return Arrays.stream(dependencies).allMatch(ModDependencyChecker::testDependency);
     }
 }

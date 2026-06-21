@@ -21,10 +21,10 @@ import java.lang.annotation.Target;
  * {@code
  * @ConditionalMixin(
  *     mixinJson = "mixins.mymod.jei.json",
- *     requireMods = {@ModDependency(modid = "jei", versionRange = "[11.0,)")},
+ *     dependencies = {@CompatHandling(modid = "jei", versionRange = "[11.0,)")},
  *     disableWhen = "-1"
  * )
- * public static int jeiFeatureDistance = 5;
+ * public static int someInt = 5;
  * }
  * </pre>
  */
@@ -40,7 +40,7 @@ public @interface MixinToggle {
     /**
      * Required mod dependencies for this mixin to load.
      */
-    CompatHandling[] requireMods() default {};
+    CompatHandling[] dependencies() default {};
 
     /**
      * For boolean fields: if true, the mixin loads when config is true (default behavior).
@@ -73,5 +73,5 @@ public @interface MixinToggle {
      * Description/comment to write in the config file.
      * If empty, no comment will be added.
      */
-    String description() default "";
+    String comment() default "";
 }

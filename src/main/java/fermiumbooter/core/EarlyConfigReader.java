@@ -16,7 +16,7 @@ import java.util.Map;
  */
 public class EarlyConfigReader {
     private static final Logger LOGGER = LogManager.getLogger("FermiumBooter");
-    private final Map<String, CommentedFileConfig> configCache = new HashMap<>();
+    private static final Map<String, CommentedFileConfig> configCache = new HashMap<>();
 
     /**
      * Loads a config file from the config directory.
@@ -27,12 +27,11 @@ public class EarlyConfigReader {
      * @param comments Comments to write for each config entry
      * @return The loaded config
      */
-    public CommentedFileConfig loadConfig(Path configPath, Map<String, Object> defaults, Map<String, String> comments) {
+    public static CommentedFileConfig loadConfig(Path configPath, Map<String, Object> defaults, Map<String, String> comments) {
         String key = configPath.toString();
 
-        if (configCache.containsKey(key)) {
+        if (configCache.containsKey(key))
             return configCache.get(key);
-        }
 
         CommentedFileConfig config = CommentedFileConfig.builder(configPath)
                 .build();
@@ -71,10 +70,9 @@ public class EarlyConfigReader {
     /**
      * Gets a value from the config, returning the default if not found.
      */
-    public <T> T getValue(CommentedFileConfig config, String path, T defaultValue) {
-        if (config.contains(path)) {
+    public static <T> T getValue(CommentedFileConfig config, String path, T defaultValue) {
+        if (config.contains(path))
             return config.get(path);
-        }
         return defaultValue;
     }
 
@@ -85,7 +83,7 @@ public class EarlyConfigReader {
      * @param disableWhen The value that should disable (as string)
      * @return true if the mixin should be disabled
      */
-    public boolean matchesDisableCondition(Object configValue, String disableWhen) {
+    public static boolean matchesDisableCondition(Object configValue, String disableWhen) {
         if (disableWhen.isEmpty()) {
             // For boolean, disable when false
             if (configValue instanceof Boolean) {
@@ -107,7 +105,7 @@ public class EarlyConfigReader {
      * @param disableWhen String value that disables the mixin
      * @return true if mixin should be loaded
      */
-    public boolean evaluateConfigCondition(Object configValue, boolean enableWhen, String disableWhen) {
+    public static boolean evaluateConfigCondition(Object configValue, boolean enableWhen, String disableWhen) {
         // Check disable condition first
         if (matchesDisableCondition(configValue, disableWhen)) {
             return false;
@@ -125,7 +123,7 @@ public class EarlyConfigReader {
     /**
      * Closes all cached configs.
      */
-    public void close() {
+    public static void close() {
         configCache.values().forEach(CommentedFileConfig::close);
         configCache.clear();
     }

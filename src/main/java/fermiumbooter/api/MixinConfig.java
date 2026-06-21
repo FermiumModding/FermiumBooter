@@ -28,5 +28,5 @@ public @interface MixinConfig {
      * Defaults to the modid derived from package structure.
      * The final config will be at config/{value}-mixintoggles.toml
      */
-    String value() default "";
+    String fileName() default "";
 }

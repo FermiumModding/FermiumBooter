@@ -10,8 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 public class FermiumBooterPlugin implements IMixinConfigPlugin {
-    private static final Logger LOGGER = LogManager.getLogger("FermiumBooterPlugin");
-    private FermiumJarScanner fermiumJarScanner;
+    public static final Logger LOGGER = LogManager.getLogger("FermiumBooterPlugin");
 
     @Override
     public String getRefMapperConfig() {
@@ -20,17 +19,11 @@ public class FermiumBooterPlugin implements IMixinConfigPlugin {
 
     @Override
     public List<String> getMixins() {
-        // Load conditional mixins from @MixinConfig classes
-        if (fermiumJarScanner != null)
-            return fermiumJarScanner.getToggleMixins();
-        return null;
+        return FermiumJarScanner.getToggleMixins();
     }
 
     @Override
-    public void onLoad(String mixinPackage) {
-        LOGGER.info("Initializing JarScanner...");
-        fermiumJarScanner = new FermiumJarScanner();
-    }
+    public void onLoad(String mixinPackage) {}
     @Override public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {return true;}
     @Override public void acceptTargets(Set<String> myTargets, Set<String> otherTargets) {}
     @Override public void preApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {}
