@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface ConditionalMixin {
+public @interface MixinToggle {
     /**
      * The mixin JSON file name (relative to resources root).
      * Example: "mixins.mymod.feature.json"
@@ -40,7 +40,7 @@ public @interface ConditionalMixin {
     /**
      * Required mod dependencies for this mixin to load.
      */
-    ModDependency[] requireMods() default {};
+    CompatHandling[] requireMods() default {};
 
     /**
      * For boolean fields: if true, the mixin loads when config is true (default behavior).

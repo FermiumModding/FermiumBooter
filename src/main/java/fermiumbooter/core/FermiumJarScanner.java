@@ -1,11 +1,11 @@
-package fermiumbooter;
+package fermiumbooter.core;
 
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import fermiumbooter.api.ConditionalMixin;
+import fermiumbooter.api.MixinToggle;
 import fermiumbooter.api.MixinConfig;
 import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.fml.loading.FMLPaths;
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 /**
  * Main class for loading conditional mixins based on config and mod dependencies.
  */
-public class ConditionalMixinLoader {
+public class FermiumJarScanner {
     private static final Logger LOGGER = LogManager.getLogger("FermiumBooter");
     private static final Gson GSON = new Gson();
 
@@ -42,7 +42,7 @@ public class ConditionalMixinLoader {
      *
      * @return List of mixin class names to load
      */
-    public List<String> loadConditionalMixins() {
+    public List<String> getToggleMixins() {
         LOGGER.info("Scanning for conditional mixin configs...");
 
         // Find all classes with @MixinConfig annotation
@@ -109,7 +109,7 @@ public class ConditionalMixinLoader {
 
         // First pass: collect all fields, their defaults, and comments
         for (Field field : configClass.getDeclaredFields()) {
-            ConditionalMixin annotation = field.getAnnotation(ConditionalMixin.class);
+            MixinToggle annotation = field.getAnnotation(MixinToggle.class);
             if (annotation == null) continue;
 
             field.setAccessible(true);
@@ -133,7 +133,7 @@ public class ConditionalMixinLoader {
 
         // Second pass: evaluate conditions and collect mixins
         for (Field field : configClass.getDeclaredFields()) {
-            ConditionalMixin annotation = field.getAnnotation(ConditionalMixin.class);
+            MixinToggle annotation = field.getAnnotation(MixinToggle.class);
             if (annotation == null) continue;
 
             String mixinJson = annotation.mixinJson();
@@ -201,7 +201,7 @@ public class ConditionalMixinLoader {
     /**
      * Handles failure based on the configured failure action.
      */
-    private void handleFailure(ConditionalMixin annotation, String mixinJson, String reason) {
+    private void handleFailure(MixinToggle annotation, String mixinJson, String reason) {
         String message = annotation.failureMessage().isEmpty() ? reason : reason + ": " + annotation.failureMessage();
 
         switch (annotation.onFailure()) {

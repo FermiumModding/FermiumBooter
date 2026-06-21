@@ -3,7 +3,7 @@
   "package": "fermiumbooter.mixin",
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
-  "plugin": "fermiumbooter.FermiumBooterPlugin",
+  "plugin": "fermiumbooter.core.FermiumBooterPlugin",
   "comment": "you can use these to add always enabled mixins for both/client/server",
   "mixins": [],
   "client": [],

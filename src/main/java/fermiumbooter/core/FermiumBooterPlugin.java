@@ -1,4 +1,4 @@
-package fermiumbooter;
+package fermiumbooter.core;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,7 +11,7 @@ import java.util.Set;
 
 public class FermiumBooterPlugin implements IMixinConfigPlugin {
     private static final Logger LOGGER = LogManager.getLogger("FermiumBooterPlugin");
-    private ConditionalMixinLoader conditionalMixinLoader;
+    private FermiumJarScanner fermiumJarScanner;
 
     @Override
     public String getRefMapperConfig() {
@@ -21,15 +21,15 @@ public class FermiumBooterPlugin implements IMixinConfigPlugin {
     @Override
     public List<String> getMixins() {
         // Load conditional mixins from @MixinConfig classes
-        if (conditionalMixinLoader != null)
-            return conditionalMixinLoader.loadConditionalMixins();
+        if (fermiumJarScanner != null)
+            return fermiumJarScanner.getToggleMixins();
         return null;
     }
 
     @Override
     public void onLoad(String mixinPackage) {
-        LOGGER.info("Initializing conditional mixin loader...");
-        conditionalMixinLoader = new ConditionalMixinLoader();
+        LOGGER.info("Initializing JarScanner...");
+        fermiumJarScanner = new FermiumJarScanner();
     }
     @Override public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {return true;}
     @Override public void acceptTargets(Set<String> myTargets, Set<String> otherTargets) {}

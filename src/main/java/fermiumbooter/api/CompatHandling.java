@@ -7,7 +7,7 @@ import java.lang.annotation.RetentionPolicy;
  * Defines a mod dependency for a conditional mixin.
  */
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ModDependency {
+public @interface CompatHandling {
     /**
      * The mod ID that must be present.
      */
@@ -26,4 +26,6 @@ public @interface ModDependency {
      * Empty string means any version.
      */
     String versionRange() default "";
+
+    //TODO: desired=false and maybe warnInGame
 }

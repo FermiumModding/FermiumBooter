@@ -1,4 +1,4 @@
-package fermiumbooter;
+package fermiumbooter.core;
 
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import org.apache.logging.log4j.LogManager;

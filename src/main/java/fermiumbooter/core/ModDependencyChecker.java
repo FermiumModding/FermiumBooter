@@ -1,6 +1,6 @@
-package fermiumbooter;
+package fermiumbooter.core;
 
-import fermiumbooter.api.ModDependency;
+import fermiumbooter.api.CompatHandling;
 import net.minecraftforge.fml.loading.LoadingModList;
 import net.minecraftforge.forgespi.language.IModInfo;
 import org.apache.logging.log4j.LogManager;
@@ -23,7 +23,7 @@ public class ModDependencyChecker {
      * @param dependency The dependency to check
      * @return true if the dependency is satisfied
      */
-    public boolean checkDependency(ModDependency dependency) {
+    public boolean checkDependency(CompatHandling dependency) {
         String modid = dependency.modid();
         String modName = dependency.modName();
         String versionRange = dependency.versionRange();
@@ -71,8 +71,8 @@ public class ModDependencyChecker {
     /**
      * Checks if all dependencies in an array are satisfied.
      */
-    public boolean checkAllDependencies(ModDependency[] dependencies) {
-        for (ModDependency dep : dependencies) {
+    public boolean checkAllDependencies(CompatHandling[] dependencies) {
+        for (CompatHandling dep : dependencies) {
             if (!checkDependency(dep)) {
                 return false;
             }
