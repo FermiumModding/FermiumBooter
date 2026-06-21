@@ -1,9 +1,6 @@
 package fermiumbooter.core;
 
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import fermiumbooter.api.MixinConfig;
 import fermiumbooter.api.MixinToggle;
 import net.minecraftforge.fml.loading.FMLLoader;
@@ -11,13 +8,8 @@ import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.fml.loading.moddiscovery.ModFile;
 import net.minecraftforge.fml.loading.moddiscovery.ModFileInfo;
 import net.minecraftforge.forgespi.language.ModFileScanData;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.Type;
-import org.spongepowered.asm.mixin.MixinEnvironment;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -26,16 +18,9 @@ import java.util.List;
 import java.util.Map;
 
 public class FermiumJarScanner {
-    private static final Logger LOGGER = LogManager.getLogger("FermiumBooter");
-    private static final Gson GSON = new Gson();
 
-    /**
-     * Scans all mods for @MixinConfig annotated classes and loads their conditional mixins.
-     *
-     * @return List of mixin class names to load
-     */
     public static List<String> getToggleMixins() {
-        LOGGER.info("Scanning for MixinConfig classes...");
+        FermiumBooterPlugin.LOGGER.info("Scanning for MixinConfig classes...");
 
         // Find all classes with @MixinConfig annotation
         List<ModFileScanData.AnnotationData> mixinConfigs = FMLLoader.getLoadingModList()
@@ -47,13 +32,13 @@ public class FermiumJarScanner {
                 .filter(a -> a.annotationType().equals(Type.getType(MixinConfig.class)))
                 .toList();
 
-        LOGGER.info("Found {} @MixinConfig class(es)", mixinConfigs.size());
+        FermiumBooterPlugin.LOGGER.info("Found {} @MixinConfig class(es)", mixinConfigs.size());
 
         List<String> mixinsToLoad = new ArrayList<>();
 
         for (ModFileScanData.AnnotationData annotation : mixinConfigs) {
             String className = annotation.clazz().getClassName();
-            LOGGER.debug("Processing @MixinConfig class: {}", className);
+            FermiumBooterPlugin.LOGGER.debug("Processing @MixinConfig class: {}", className);
 
             try {
                 // Load the config class
@@ -67,13 +52,13 @@ public class FermiumJarScanner {
                 mixinsToLoad.addAll(mixinClasses);
 
             } catch (ClassNotFoundException e) {
-                LOGGER.error("Failed to load @MixinConfig class: {}", className, e);
+                FermiumBooterPlugin.LOGGER.error("Failed to load @MixinConfig class: {}", className, e);
             }
         }
 
         EarlyConfigReader.close();
 
-        LOGGER.info("Loaded {} mixin toggle(s)", mixinsToLoad.size());
+        FermiumBooterPlugin.LOGGER.info("Loaded {} mixin toggle(s)", mixinsToLoad.size());
         return mixinsToLoad;
     }
 
@@ -112,7 +97,7 @@ public class FermiumJarScanner {
                     comments.put(field.getName(), annotation.comment());
                 }
             } catch (IllegalAccessException e) {
-                LOGGER.error("Failed to read default value for field: {}", field.getName(), e);
+                FermiumBooterPlugin.LOGGER.error("Failed to read default value for field: {}", field.getName(), e);
             }
         }
 
@@ -126,7 +111,7 @@ public class FermiumJarScanner {
             if (annotation == null) continue;
 
             String mixinJson = annotation.mixinJson();
-            LOGGER.debug("Evaluating condition for mixin JSON: {}", mixinJson);
+            FermiumBooterPlugin.LOGGER.debug("Evaluating condition for mixin JSON: {}", mixinJson);
 
             // If config disables it, don't even check dependencies
             Object configValue = EarlyConfigReader.getValue(config, field.getName(), defaultValues.get(field.getName()));
@@ -137,61 +122,30 @@ public class FermiumJarScanner {
             );
 
             if (!configEnabled) {
-                LOGGER.debug("Config disabled mixin: {} (field {} = {})", mixinJson, field.getName(), configValue);
+                FermiumBooterPlugin.LOGGER.debug("Config disabled mixin: {} (field {} = {})", mixinJson, field.getName(), configValue);
                 continue;
             }
 
             // Only check mod dependencies if config allows the mixin
             if (!ModDependencyChecker.checkAllDependencies(annotation.dependencies())) {
-                handleFailure(annotation, "Required mod dependency not met");
+                handleFailure(annotation, mixinJson, "Required mod dependency not met");
                 continue;
             }
 
-            // Load the mixin JSON and extract mixin class names
-            try {
-                List<String> mixinClasses = loadMixinJson(mixinJson);
-                mixinsToLoad.addAll(mixinClasses);
-                LOGGER.info("Enabled mixin JSON: {} ({} mixin class(es))", mixinJson, mixinClasses.size());
-            } catch (Exception e) {
-                handleFailure(annotation, "Failed to load mixin JSON: " + e.getMessage());
-            }
+            mixinsToLoad.add(mixinJson);
         }
 
         return mixinsToLoad;
     }
 
-    /**
-     * Loads a mixin JSON file and extracts all mixin class names from it.
-     */
-    private static List<String> loadMixinJson(String mixinJsonPath) {
-        List<String> mixinClasses = new ArrayList<>();
-
-        // Load JSON from classpath
-        InputStream stream = FermiumJarScanner.class.getClassLoader().getResourceAsStream(mixinJsonPath);
-        if (stream == null) throw new IllegalStateException("Mixin JSON not found: " + mixinJsonPath);
-
-        JsonObject json = GSON.fromJson(new InputStreamReader(stream), JsonObject.class);
-
-        for (String key : new String[]{"mixins", "client", "server"}) {
-            if (!json.has(key)) continue;
-            if (MixinEnvironment.getCurrentEnvironment().getSide() == MixinEnvironment.Side.CLIENT && key.equals("server")) continue;
-            if (MixinEnvironment.getCurrentEnvironment().getSide() == MixinEnvironment.Side.SERVER && key.equals("client")) continue;
-
-            for (JsonElement elem : json.getAsJsonArray(key))
-                mixinClasses.add(elem.getAsString());
-        }
-
-        return mixinClasses;
-    }
-
-    private static void handleFailure(MixinToggle annotation, String reason) {
+    private static void handleFailure(MixinToggle annotation, String mixinJson, String reason) {
         String message = annotation.failureMessage().isEmpty() ? reason : reason + ": " + annotation.failureMessage();
 
         switch (annotation.onFailure()) {
-            case IGNORE: LOGGER.debug("Disabled mixin json. {}", message); break;
-            case WARN: LOGGER.warn("Disabled mixin json. {}", message); break;
+            case IGNORE: FermiumBooterPlugin.LOGGER.debug("Disabled mixin json {}. {}", mixinJson, message); break;
+            case WARN: FermiumBooterPlugin.LOGGER.warn("Disabled mixin json {}. {}", mixinJson, message); break;
             case ERROR:
-                LOGGER.error("Mixin json conditions aren't met, crashing deliberately: {}", message);
+                FermiumBooterPlugin.LOGGER.error("Mixin json {}, conditions aren't met, crashing deliberately: {}", mixinJson, message);
                 throw new Error(message);
         }
     }
