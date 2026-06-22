@@ -27,9 +27,9 @@ public abstract class Config implements IConfig {
     private static final List<Config> modCfgs = new ArrayList<>();
 
     public final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
-    public final Map<String, ForgeConfigSpec.ConfigValue<?>> CFG_FIELDS = new HashMap<>(); //These are only needed if you also want to WRITE into the config file dynamically
-    private final List<Runnable> CFG_SETTERS = new ArrayList<>();
-    public final List<IConfig> CATEGORIES = new ArrayList<>();
+    private final Map<String, ForgeConfigSpec.ConfigValue<?>> CFG_FIELDS = new HashMap<>();
+    private final Map<String, Runnable> CFG_SETTERS = new HashMap<>();
+    private final List<IConfig> CATEGORIES = new ArrayList<>(); //These are only the wired categories, for internal use
 
     public Config(){
         modCfgs.add(this);
@@ -43,9 +43,9 @@ public abstract class Config implements IConfig {
 
     protected  <T> void registerCfg(Supplier<ForgeConfigSpec.ConfigValue<T>> builder, Consumer<T> setter) {
         ForgeConfigSpec.ConfigValue<T> internalConfigField = builder.get(); //creates the config entry
-        CFG_SETTERS.add(() -> setter.accept(internalConfigField.get())); //will set the chosen variable on every cfg change
-
         String fullPath = String.join(".", internalConfigField.getPath());
+
+        CFG_SETTERS.put(fullPath, () -> setter.accept(internalConfigField.get())); //will set the chosen variable on every cfg change
         CFG_FIELDS.put(fullPath, internalConfigField);
     }
 
@@ -64,46 +64,57 @@ public abstract class Config implements IConfig {
         registerCategory(categoryName, comment, cfgRegistrations, subCategoryRegistrations);
     }
 
+    /**
+     * This allows to set a config value from the code side. It will update the code side of the config, the file, and potentially ingame cfg guis
+     */
+    @SuppressWarnings("unchecked")
+    public <T> void setValue(String key, T newVal){
+        if (!CFG_FIELDS.containsKey(key)) throw new RuntimeException("Config doesn't contain config key: " + key);
+        ForgeConfigSpec.ConfigValue<?> field = CFG_FIELDS.get(key);
+        ((ForgeConfigSpec.ConfigValue<T>) field).set(newVal); //this sets it for ingame guis and for the file. Unsafe, this will crash if the type isn't correct
+        CFG_SETTERS.get(key).run(); // usually just doing cfg.testCfg = newVal but using the registered setter
+    }
+
     @SubscribeEvent
     public static void configLoad(ModConfigEvent.Loading event) {
-        modCfgs.forEach(cfg -> cfg.onCfgLoad(event));
+        modCfgs.forEach(cfg -> cfg.onCfgLoad(event, null));
     }
 
     @SubscribeEvent
     public static void configReload(ModConfigEvent.Reloading event) {
         modCfgs.forEach(cfg -> {
-            cfg.onCfgReload(event, false);
-            cfg.CFG_SETTERS.forEach(Runnable::run);
-            cfg.onCfgReload(event, true);
+            cfg.onCfgReload(event, null, false);
+            cfg.CFG_SETTERS.values().forEach(Runnable::run);
+            cfg.onCfgReload(event, null, true);
         });
     }
 
     @SubscribeEvent
     public static void setup(final FMLCommonSetupEvent event) {
-        modCfgs.forEach(cfg -> cfg.onSetup(event));
+        modCfgs.forEach(cfg -> cfg.onSetup(event, null));
     }
 
     @SubscribeEvent
     public static void loadComplete(final FMLLoadCompleteEvent event) {
-        modCfgs.forEach(cfg -> cfg.onLoadComplete(event));
+        modCfgs.forEach(cfg -> cfg.onLoadComplete(event, null));
     }
 
     // ------ Wiring for IConfig ------
 
     @Override
-    public void onCfgLoad(ModConfigEvent.Loading event){
-        CATEGORIES.forEach(cat -> cat.onCfgLoad(event));
+    public void onCfgLoad(ModConfigEvent.Loading event, Config callingCfg){
+        CATEGORIES.forEach(cat -> cat.onCfgLoad(event, callingCfg != null ? callingCfg : this));
     }
     @Override
-    public void onCfgReload(ModConfigEvent.Reloading event, boolean postSet){
-        CATEGORIES.forEach(cat -> cat.onCfgReload(event, postSet));
+    public void onCfgReload(ModConfigEvent.Reloading event, Config callingCfg, boolean postSet){
+        CATEGORIES.forEach(cat -> cat.onCfgReload(event, callingCfg != null ? callingCfg : this, postSet));
     }
     @Override
-    public void onSetup(FMLCommonSetupEvent event){
-        CATEGORIES.forEach(cat -> cat.onSetup(event));
+    public void onSetup(FMLCommonSetupEvent event, Config callingCfg){
+        CATEGORIES.forEach(cat -> cat.onSetup(event, callingCfg != null ? callingCfg : this));
     }
     @Override
-    public void onLoadComplete(FMLLoadCompleteEvent event){
-        CATEGORIES.forEach(cat -> cat.onLoadComplete(event));
+    public void onLoadComplete(FMLLoadCompleteEvent event, Config callingCfg){
+        CATEGORIES.forEach(cat -> cat.onLoadComplete(event, callingCfg != null ? callingCfg : this));
     }
 }
