@@ -1,5 +1,6 @@
 package fermiumbooter;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -8,6 +9,7 @@ import com.llamalad7.mixinextras.MixinExtrasBootstrap;
 import fermiumbooter.util.CustomLogger;
 import fermiumbooter.util.FermiumJarScanner;
 import fermiumbooter.util.ForcedConfigHandler;
+import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -21,9 +23,11 @@ import org.spongepowered.asm.mixin.Mixins;
 public class FermiumPlugin implements IFMLLoadingPlugin {
 
 	public static final Logger LOGGER = LogManager.getLogger("FermiumBooter");
+	public static Configuration CONFIG;
 	
 	static {
 		//Handle forced mixins reasonably early to catch crashes
+		CONFIG = new Configuration(new File("config", "fermiumbooter.cfg"));
 		ForcedConfigHandler.handleForcedMixinConfigs();
 	}
 

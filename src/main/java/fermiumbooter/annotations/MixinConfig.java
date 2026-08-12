@@ -38,6 +38,8 @@ public @interface MixinConfig {
 	 * Provides additional modID-based compatibility handling for fields annotated by @MixinToggle
 	 * If checks fail a specific warning will be logged and a general warning will display on screen
 	 * modid: ModID of the target mod
+	 * modName: Additionally check for specific name of the target mod, to distinguish between forks
+	 * targetVersionRange: Additionally check for version of target mod to be in the given range, using the same system as @Mod(dependencies=...)
 	 * desired: Whether the target mod is desired - true is treated as a dependency, false is treated as an incompatibility
 	 * disableMixin: If the check fails, true will disable the annotated mixin(s), false will only log a warning
 	 * warnIngame: If the check fails, true will render a warning ingame, false will only log a warning
@@ -48,6 +50,8 @@ public @interface MixinConfig {
 	@Repeatable(CompatHandlingContainer.class)
 	@interface CompatHandling {
 		String modid();
+		String modName() default "";
+		String targetVersionRange() default "";
 		boolean desired();
 		boolean disableMixin() default true;
 		boolean warnIngame() default true;

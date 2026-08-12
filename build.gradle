@@ -1,29 +1,15 @@
-buildscript {
-    repositories {
-        maven {
-            url = 'https://maven.minecraftforge.net/'
-        }
-        maven {
-            url = 'https://repo.spongepowered.org/maven'
-        }
-        maven {
-            url = "https://plugins.gradle.org/m2/"
-        }
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
-        classpath group: 'org.spongepowered', name: 'mixingradle', version: '0.7.+'
-        classpath("gradle.plugin.com.github.jengelman.gradle.plugins:shadow:7.0.0")
-    }
+plugins {
+    id 'eclipse'
+    id 'idea'
+    id 'net.minecraftforge.gradle' version "${forge_gradle_version}"
+    id 'org.spongepowered.mixin' version "${mixin_gradle_version}"
+    id 'wtf.gofancy.fancygradle' version "${fancy_gradle_version}"
+    id 'com.gradleup.shadow' version "${shadow_gradle_version}"
 }
-apply plugin: 'com.github.johnrengelman.shadow'
-apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'org.spongepowered.mixin'
 
-version = "${mod_version}"
-group = "${mod_id}"
-archivesBaseName = '`' + "${mod_name}"
+version = mod_version
+group = mod_id
+base.archivesName = mod_name
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 java.withSourcesJar()
@@ -31,18 +17,43 @@ java.withJavadocJar()
 
 minecraft {
     mappings channel: mappings_channel, version: mappings_version
+
+    runs {
+        client {
+            args "--username=InDev"
+
+            jvmArg "-Dmixin.hotSwap=true"
+            jvmArg "-Dmixin.checks.interfaces=true"
+            jvmArg "-Dmixin.debug.export=true"
+
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.console.level', 'debug'
+        }
+
+        server {
+
+            jvmArg "-Dmixin.hotSwap=true"
+            jvmArg "-Dmixin.checks.interfaces=true"
+            jvmArg "-Dmixin.debug.export=true"
+
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.console.level', 'debug'
+        }
+    }
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
-    maven {
-        url = "https://maven.bawnorton.com/releases"
-    }
-    flatDir {
-        dirs 'libs\\'
-    }
-    mavenCentral()
+    maven { url = 'https://maven.minecraftforge.net/'}
+    maven { url = 'https://repo.spongepowered.org/maven'}
+    maven { url = 'https://plugins.gradle.org/m2/' }
+    maven { url = 'https://maven.bawnorton.com/releases'}
+    flatDir { dirs 'libs' }
 }
 
 dependencies {
@@ -51,27 +62,48 @@ dependencies {
     //https://github.com/fonnymunkey/SpongeMixin
     //Temporarily shadow patched version of 0.8.7 that fixes compat with old mods, return to mainline when 0.8.8 merges https://github.com/SpongePowered/Mixin/pull/678
     shadow files('libs/mixin-0.8.7.jar')
+    implementation files('libs/mixin-0.8.7.jar')
     annotationProcessor files('libs/mixin-0.8.7-processor.jar')
 
-    shadow 'io.github.llamalad7:mixinextras-common:0.5.0'
-    annotationProcessor 'io.github.llamalad7:mixinextras-common:0.5.0'
+    shadow 'io.github.llamalad7:mixinextras-common:0.5.3'
+    implementation 'io.github.llamalad7:mixinextras-common:0.5.3'
+    annotationProcessor 'io.github.llamalad7:mixinextras-common:0.5.3'
 
     shadow 'com.github.bawnorton.mixinsquared:mixinsquared-common:0.3.3'
+    implementation 'com.github.bawnorton.mixinsquared:mixinsquared-common:0.3.3'
     annotationProcessor 'com.github.bawnorton.mixinsquared:mixinsquared-common:0.3.3'
+
+    shadow  'io.github.classgraph:classgraph:4.8.184'
+    implementation 'io.github.classgraph:classgraph:4.8.184'
 }
 
 mixin {
     add sourceSets.main, "mixins.${mod_id}.refmap.json"
 }
 
+fancyGradle {
+    patches {
+        resources
+        coremods
+        asm
+        mergetool
+    }
+}
+
 processResources {
-    inputs.property "version", project.version
-    inputs.property "mcversion", minecraft_version
+    var replaceProperties = [
+            'mod_id': mod_id,
+            'mod_name': mod_name,
+            'version': mod_version,
+            'mcversion': minecraft_version,
+            'mod_description': mod_description,
+            'mod_author': mod_author
+    ]
+
+    inputs.properties replaceProperties
 
     filesMatching('mcmod.info') {
-        expand 'mod_id': mod_id, 'mod_name': mod_name, 'version': project.version,
-                'mcversion': minecraft_version, 'mod_description': mod_description,
-                'mod_author': mod_author
+        expand replaceProperties
     }
 }
 
@@ -98,15 +130,36 @@ jar {
                 "Implementation-Title"    : mod_name,
                 "Implementation-Version"  : mod_version,
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-                "FMLCorePlugin": "${mixin_loader_class}",
+                "FMLCorePlugin": mixin_loader_class,
                 "FMLCorePluginContainsFMLMod": "true",
                 "ForceLoadAsMod": "true",
                 "TweakClass": "org.spongepowered.asm.launch.MixinTweaker"
         ])
     }
 
+    jar {
+        manifest {
+            def attr = [:]
+            attr['Specification-Title']         = mod_name
+            attr['Specification-Vendor']        = mod_author
+            attr['Specification-Version']       = '1'
+            attr['Implementation-Title']        = mod_name
+            attr['Implementation-Vendor']       = mod_author
+            attr['Implementation-Version']      = mod_version
+            attr['Implementation-Timestamp']    = new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+            attr['FMLCorePlugin']               = mixin_loader_class
+            attr['FMLCorePluginContainsFMLMod'] = 'true'
+            attr['TweakClass']                  = 'org.spongepowered.asm.launch.MixinTweaker'
+
+            def currentTasks = gradle.startParameter.taskNames
+            if (currentTasks[0] != 'runClient' && currentTasks[0] != 'runServer')
+                attr['ForceLoadAsMod'] = "true"
+            attributes(attr)
+        }
+    }
+
     archiveClassifier.set('THIN')
 }
 
 build.dependsOn(shadowJar)
-jar.finalizedBy('reobfJar')
+jar.finalizedBy('reobfShadowJar')

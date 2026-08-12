@@ -8,6 +8,9 @@ import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Config(modid = FermiumBooter.MODID)
 @MixinConfig(name = FermiumBooter.MODID)
 public class FermiumBooterConfig {
@@ -34,6 +37,21 @@ public class FermiumBooterConfig {
 	@Config.RequiresMcRestart
 	@MixinConfig.MixinToggle(earlyMixin = "mixins.fermiumbooter.crashreport.json", defaultValue = true)
 	public static boolean appendGeneralMixinExceptionsToCrashReports = true;
+
+	@Config.Comment({
+			"Used to detect mods that don't use @Mod or mcmod.info to define their modid",
+			"If the jar scanner finds the given package, it will set the respective modid as being present. ",
+			"It is not possible to filter for version or modname when using this system",
+			"Pattern: S:path.of.package=modid"
+	})
+	@Config.Name("Jar Scanner Manual Overrides")
+	public static Map<String, String> jarScannerOverrides = new HashMap<String, String>(){{
+		put("net.jan.moddirector", "moddirector");
+		put("git.jbredwards.jsonpaintings", "jsonpaintings");
+		put("net.optifine", "optifine");
+		put("gg.essential", "essential");
+	}};
+
 	
 	@Mod.EventBusSubscriber(modid = FermiumBooter.MODID)
 	private static class ConfigSyncHandler {
