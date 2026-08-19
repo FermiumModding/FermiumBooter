@@ -46,7 +46,6 @@ public class FermiumBooterConfig {
 	})
 	@Config.Name("Jar Scanner Manual Overrides")
 	public static Map<String, String> jarScannerOverrides = new HashMap<String, String>(){{
-		put("net.jan.moddirector", "moddirector");
 		put("git.jbredwards.jsonpaintings", "jsonpaintings");
 		put("net.optifine", "optifine");
 		put("gg.essential", "essential");

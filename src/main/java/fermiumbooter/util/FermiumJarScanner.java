@@ -90,10 +90,13 @@ public abstract class FermiumJarScanner {
 		File mcDir = new File(".");
 
 		Map<String, String> manualOverrides = new HashMap<>();
-		ConfigCategory cat = FermiumPlugin.CONFIG.getCategory("general.jar scanner manual overrides");
-		if(cat != null)
-			for(Map.Entry<String, Property> entry : cat.getValues().entrySet())
-				manualOverrides.put(entry.getKey(), entry.getValue().getString());
+		if(FermiumPlugin.CONFIG.hasCategory("general.jar scanner manual overrides")) {
+			ConfigCategory cat = FermiumPlugin.CONFIG.getCategory("general.jar scanner manual overrides");
+			if (cat != null)
+				for (Map.Entry<String, Property> entry : cat.getValues().entrySet())
+					manualOverrides.put(entry.getKey(), entry.getValue().getString());
+		} else
+			manualOverrides.putAll(FermiumBooterConfig.jarScannerOverrides); // first startup
 
 		//search for @Mod and @MixinConfig annotated classes
 		Set<String> mixinConfigPaths = new HashSet<>();
@@ -155,6 +158,12 @@ public abstract class FermiumJarScanner {
 			LOGGER.error("Crashed while parsing jars!");
 			e.printStackTrace(System.err);
 		}
+		//Mod Director classes+resources are gone by the time fermiumbooter is checking. This is probably not needed, but it also doesn't hurt
+		try {
+			if (((ArrayList<String>) Launch.blackboard.get("TweakClasses")).contains("net.jan.moddirector.launchwrapper.forge.AfterDeobfTweaker"))
+				presentMods.put("moddirector", new ModInfo("moddirector", null, null));
+		} catch(Exception ignored) {}
+
 		earlyModIDs.addAll(presentMods.keySet()); // just for mix2ferm
 
 		//search @MixinConfig annotated classes more specifically
