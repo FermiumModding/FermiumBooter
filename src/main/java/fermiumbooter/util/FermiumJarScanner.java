@@ -102,6 +102,8 @@ public abstract class FermiumJarScanner {
 		Set<String> mixinConfigPaths = new HashSet<>();
 		try (ScanResult scanResult = new ClassGraph()
 				.enableAnnotationInfo()
+				.ignoreClassVisibility()
+				.disableRuntimeInvisibleAnnotations()
 				.disableModuleScanning()
 				.overrideClasspath(
 						mcDir.getAbsolutePath()+"/mods/*"+ File.pathSeparatorChar+
@@ -115,10 +117,12 @@ public abstract class FermiumJarScanner {
 						"com.google.common.*",
 						"com.mojang.*",
 						"org.objectweb.asm.*",
+						"org.apache.*",
 						"io.github.classgraph.*",
 						"nonapi.io.github.classgraph.*",
 						"com.llamalad7.*",
 						"kotlin.*",
+						"scala.*",
 						"it.unimi*"
 				)
 				.scan()
@@ -170,6 +174,8 @@ public abstract class FermiumJarScanner {
 		try (ScanResult scanResult = new ClassGraph()
 				.enableAnnotationInfo()
 				.enableFieldInfo()
+				.ignoreClassVisibility()
+				.disableRuntimeInvisibleAnnotations()
 				.disableModuleScanning()
 				.acceptPackages(mixinConfigPaths.toArray(new String[0])) //no need to change classPath cause these classes are from jars that have a coremod
 				.scan()
