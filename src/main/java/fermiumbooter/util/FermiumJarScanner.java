@@ -182,7 +182,7 @@ public abstract class FermiumJarScanner {
 		}
 
 		long elapsed = System.currentTimeMillis() - time;
-		LOGGER.debug("Searching through present mods took {} ms", elapsed);
+		LOGGER.log(Level.INFO, "Finished jar scanning, took {} ms", elapsed);
 	}
 	
 	private static void searchModInfoRecursive(JsonElement element) {
