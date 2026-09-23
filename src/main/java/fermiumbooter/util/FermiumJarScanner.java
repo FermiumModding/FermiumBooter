@@ -100,6 +100,7 @@ public abstract class FermiumJarScanner {
 
 		//search for @Mod and @MixinConfig annotated classes
 		Set<String> mixinConfigPaths = new HashSet<>();
+		Set<File> mixinConfigJars = new HashSet<>();
 		try (ScanResult scanResult = new ClassGraph()
 				.enableAnnotationInfo()
 				.ignoreClassVisibility()
@@ -155,9 +156,15 @@ public abstract class FermiumJarScanner {
 			for(ClassInfo classInfo : scanResult.getClassesWithAnnotation(modClassName))
 				parseMod(classInfo);
 
-			//search for @MixinConfig
-			for(ClassInfo classInfo : scanResult.getClassesWithAnnotation(MixinConfig.class.getName()))
+			//search for @MixinConfig and track which jars contain them
+			for(ClassInfo classInfo : scanResult.getClassesWithAnnotation(MixinConfig.class.getName())) {
 				mixinConfigPaths.add(classInfo.getPackageName()+".");
+
+				//will be added to classpath
+				File jarFile = classInfo.getClasspathElementFile();
+				if(jarFile != null && jarFile.exists() && jarFile.isFile() && jarFile.getName().endsWith(".jar"))
+					mixinConfigJars.add(jarFile);
+			}
 		} catch(Exception e) {
 			LOGGER.error("Crashed while parsing jars!");
 			e.printStackTrace(System.err);
@@ -170,6 +177,29 @@ public abstract class FermiumJarScanner {
 
 		earlyModIDs.addAll(presentMods.keySet()); // just for mix2ferm
 
+		//Add jars containing @MixinConfig classes to classpath
+		//to allow FermiumBooter and Mixin to find the MixinConfig classes and the mixin jsons
+		//Is only done for jars without coremods, as jars with coremods are already in the classpath
+		Set<String> existingPaths = new HashSet<>();
+		for(URL url : Launch.classLoader.getURLs()) {
+			try {
+				existingPaths.add(url.toURI().toString());
+			} catch(Exception e) {
+				existingPaths.add(url.toString());
+			}
+		}
+		for(File jar : mixinConfigJars) {
+			try {
+				String jarUri = jar.toURI().toString();
+				if(!existingPaths.contains(jarUri)) {
+					Launch.classLoader.addURL(jar.toURI().toURL());
+					LOGGER.debug("Added JAR to classpath for @MixinConfig resource loading: {}", jar.getName());
+				}
+			} catch(Exception e) {
+				LOGGER.error("Failed to add JAR {} to classpath", jar.getName(), e);
+			}
+		}
+
 		//search @MixinConfig annotated classes more specifically
 		try (ScanResult scanResult = new ClassGraph()
 				.enableAnnotationInfo()
@@ -177,7 +207,7 @@ public abstract class FermiumJarScanner {
 				.ignoreClassVisibility()
 				.disableRuntimeInvisibleAnnotations()
 				.disableModuleScanning()
-				.acceptPackages(mixinConfigPaths.toArray(new String[0])) //no need to change classPath cause these classes are from jars that have a coremod
+				.acceptPackages(mixinConfigPaths.toArray(new String[0])) //no need to change classPath
 				.scan()
 		) {
 			for(ClassInfo classInfo : scanResult.getClassesWithAnnotation(MixinConfig.class.getName()))
