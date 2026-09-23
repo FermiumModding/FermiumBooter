@@ -12,9 +12,10 @@ import io.github.classgraph.*;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.common.config.ConfigCategory;
 import net.minecraftforge.common.config.Property;
-import net.minecraftforge.fml.common.versioning.ArtifactVersion;
-import net.minecraftforge.fml.common.versioning.InvalidVersionSpecificationException;
-import net.minecraftforge.fml.common.versioning.VersionRange;
+import org.apache.maven.artifact.versioning.ArtifactVersion;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
+import org.apache.maven.artifact.versioning.InvalidVersionSpecificationException;
+import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -377,7 +378,7 @@ public abstract class FermiumJarScanner {
 
     private static boolean isInVersionRange(ArtifactVersion presentVersion, String modVersionRange) throws InvalidVersionSpecificationException {
         if(presentVersion == null) return false; //null is not in any range
-		if(modVersionRange.equals(presentVersion.getVersionString())) return true; // if targeting an exact version (or a very weirdly named one)
+		if(modVersionRange.equals(presentVersion.toString())) return true; // if targeting an exact version (or a very weirdly named one)
 		return VersionRange.createFromVersionSpec(modVersionRange).containsVersion(presentVersion); //works for a surprising range of ways to write a version
     }
 
