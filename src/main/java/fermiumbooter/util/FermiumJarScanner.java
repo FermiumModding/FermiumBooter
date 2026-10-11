@@ -23,6 +23,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -109,7 +110,7 @@ public abstract class FermiumJarScanner {
 				.disableModuleScanning()
 				.overrideClasspath(
 						mcDir.getAbsolutePath()+"/mods/*"+ File.pathSeparatorChar+
-								Arrays.stream(Launch.classLoader.getURLs()).map(URL::getPath).collect(Collectors.joining(File.pathSeparator)) //not the biggest fan of this
+								Arrays.stream(Launch.classLoader.getURLs()).map(FermiumJarScanner::getPath).collect(Collectors.joining(File.pathSeparator)) //not the biggest fan of this
 				)
 				.rejectPackages(
 						"java.*",
@@ -381,6 +382,15 @@ public abstract class FermiumJarScanner {
 		if(modVersionRange.equals(presentVersion.toString())) return true; // if targeting an exact version (or a very weirdly named one)
 		return VersionRange.createFromVersionSpec(modVersionRange).containsVersion(presentVersion); //works for a surprising range of ways to write a version
     }
+
+	//URL::getPath keeps %20, so paths with spaces were not scanned
+	private static String getPath(URL url) {
+		try {
+			return new File(url.toURI()).getPath();
+		} catch(URISyntaxException | IllegalArgumentException e) {
+			return url.getPath();
+		}
+	}
 
 	private static Boolean skipCompatHandlingChecks = null;
 	

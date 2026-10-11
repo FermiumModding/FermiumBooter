@@ -1,8 +1,10 @@
 package fermiumbooter;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import com.llamalad7.mixinextras.MixinExtrasBootstrap;
@@ -10,6 +12,8 @@ import fermiumbooter.util.CustomLogger;
 import fermiumbooter.util.FermiumJarScanner;
 import fermiumbooter.util.ForcedConfigHandler;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.fml.relauncher.CoreModManager;
+import net.minecraftforge.fml.relauncher.FMLLaunchHandler;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -61,6 +65,16 @@ public class FermiumPlugin implements IFMLLoadingPlugin {
 	@Override
 	public void injectData(Map<String, Object> data) {
 		CustomLogger.init();
+
+		//Indev, ForceLoadAsMod dependencies would otherwise not load as mods
+		if(FMLLaunchHandler.isDeobfuscatedEnvironment()) {
+			//Not the class loader sources, mods folder coremods would load twice
+			Set<String> classpathJars = new HashSet<>();
+			for(String path : System.getProperty("java.class.path").split(File.pathSeparator)) {
+				classpathJars.add(new File(path).getName());
+			}
+			CoreModManager.getReparseableCoremods().removeIf(classpathJars::contains);
+		}
 
 		//Handle caching now if it hasn't already
 		FermiumJarScanner.handleCaching();
