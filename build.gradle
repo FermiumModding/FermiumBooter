@@ -75,6 +75,9 @@ dependencies {
 
     shadow  'io.github.classgraph:classgraph:4.8.184'
     implementation 'io.github.classgraph:classgraph:4.8.184'
+
+    shadow 'io.github.meldexun:asmutil:2.8.1'
+    implementation 'io.github.meldexun:asmutil:2.8.1'
 }
 
 mixin {
