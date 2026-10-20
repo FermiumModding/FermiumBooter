@@ -10,13 +10,16 @@ import java.lang.annotation.*;
  *
  * Any classes containing @MixinToggle fields must also annotate the class with @MixinConfig, including inner classes
  *
- * configName: Config file name, this should match the name you provide to @Config, or the modid if name is not provided
+ * name: Config file name, this should match the name you provide to @Config, or the modid if name is not provided
+ * classloadEarly: If set to true, will load this class after scanning it, running its static{} block. Use this for more complex enqueues if you don't want to use a coremod
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface MixinConfig {
 	
 	String name();
+
+	boolean classloadEarly() default false;
 	
 	/**
 	 * Annotates a boolean field annotated with @Config.Name that toggles if mixins should attempt to be loaded

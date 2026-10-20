@@ -107,10 +107,8 @@ public abstract class FermiumJarScanner {
 				.ignoreClassVisibility()
 				.disableRuntimeInvisibleAnnotations()
 				.disableModuleScanning()
-				.overrideClasspath(
-						mcDir.getAbsolutePath()+"/mods/*"+ File.pathSeparatorChar+
-								Arrays.stream(Launch.classLoader.getURLs()).map(URL::getPath).collect(Collectors.joining(File.pathSeparator)) //not the biggest fan of this
-				)
+				.overrideClasspath(mcDir.getAbsolutePath() + "/mods/*")
+				.overrideClasspath((Object[]) Launch.classLoader.getURLs())
 				.rejectPackages(
 						"java.*",
 						"org.spongepowered.*",
@@ -129,6 +127,9 @@ public abstract class FermiumJarScanner {
 				)
 				.scan()
 		) {
+			LOGGER.info(mcDir.getAbsolutePath());
+			scanResult.getClasspathFiles().forEach(file -> LOGGER.info("Scanned {}", file));
+
 			//mcmod.info search
 			//Some mods are dumb and set their mcmod.info modids incorrectly, need to also check annotation regardless
 			for(Resource resource : scanResult.getResourcesWithLeafName("mcmod.info")){
@@ -261,7 +262,8 @@ public abstract class FermiumJarScanner {
 	}
 
 	private static void parseMixinConfig(ClassInfo classInfo) {
-		String mixinConfigName = (String) classInfo.getAnnotationInfo().get(MixinConfig.class.getName()).getParameterValues().get("name").getValue();
+		AnnotationParameterValueList annoValues = classInfo.getAnnotationInfo().get(MixinConfig.class.getName()).getParameterValues();
+		String mixinConfigName = (String) annoValues.get("name").getValue();
 		if(mixinConfigName == null || mixinConfigName.isEmpty()) return;
 
 		for(FieldInfo parsedField : classInfo.getFieldInfo()) {
@@ -302,6 +304,13 @@ public abstract class FermiumJarScanner {
 				LOGGER.error("Failed to parse @MixinToggle annotated field {} of {}, skipping", parsedField.getName(), classInfo.getName());
 			}
 		}
+
+		if((boolean) annoValues.get("classloadEarly").getValue())
+			try {
+				Class.forName(classInfo.getName());
+			} catch (ClassNotFoundException e) {
+                LOGGER.error("Could not find class {} when trying to classload early, skipping.", classInfo.getName(), e);
+			}
 	}
 
 	private static String getOptionalAnnoParam(AnnotationParameterValue param) {
