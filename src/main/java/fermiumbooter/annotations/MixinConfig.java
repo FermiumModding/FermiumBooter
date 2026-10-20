@@ -23,17 +23,17 @@ public @interface MixinConfig {
 	
 	/**
 	 * Annotates a boolean field annotated with @Config.Name that toggles if mixins should attempt to be loaded
-	 * Early loading is for mixins targeting Vanilla/Core-mod classes
-	 * Late loading is for mixins targeting mod classes that are loaded too late for normal mixins to target
-	 * earlyMixin: Name of the mixin configuration file (Json) to be loaded early (Empty for none, must be either or both)
-	 * lateMixin: Name of the mixin configuration file (Json) to be loaded late (Empty for none, must be either or both)
+	 * mixinJson: Name of the mixin json to be loaded. Can target any class, vanilla or modded.
+	 * earlyMixin: Deprecated since 1.6.0, now an alias for mixinJson
+	 * lateMixin: Deprecated since 1.6.0, mixin json to be loaded late, so right before mods are constructed
 	 * defaultValue: If the mixin should attempt to be loaded by default (First launch)
 	 */
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target(ElementType.FIELD)
 	@interface MixinToggle {
-		String earlyMixin() default "";
-		String lateMixin() default "";
+		String mixinJson() default "";
+		@Deprecated String earlyMixin() default "";
+		@Deprecated String lateMixin() default "";
 		boolean defaultValue();
 	}
 	

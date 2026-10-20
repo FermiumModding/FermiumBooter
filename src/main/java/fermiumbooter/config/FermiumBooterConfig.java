@@ -35,7 +35,7 @@ public class FermiumBooterConfig {
 	@Config.Comment("Appends prior mixin exceptions to crash reports to help diagnose crashes")
 	@Config.Name("Append General Mixin Exceptions To Crash Reports")
 	@Config.RequiresMcRestart
-	@MixinConfig.MixinToggle(earlyMixin = "mixins.fermiumbooter.crashreport.json", defaultValue = true)
+	@MixinConfig.MixinToggle(mixinJson = "mixins.fermiumbooter.crashreport.json", defaultValue = true)
 	public static boolean appendGeneralMixinExceptionsToCrashReports = true;
 
 	@Config.Comment({
@@ -51,15 +51,31 @@ public class FermiumBooterConfig {
 		put("gg.essential", "essential");
 	}};
 
-	
-	@Mod.EventBusSubscriber(modid = FermiumBooter.MODID)
+	@Config.Comment({
+			"Adds all mod jars to the classpath before coremods finish loading instead of only right before mods are constructed",
+			"This allows early mixins to target classes of any mod, not just of mods containing coremods, making late loading unnecessary.",
+			"Forge still discovers and loads these mods the same way as before",
+			"Debug toggle. Mods will rely on this being on, only disable to check if this is responsible for classloading-related crashes you experience."
+	})
+	@Config.Name("Add All Mods To Classpath Early")
+	@Config.RequiresMcRestart
+	public static boolean addAllModsToClasspathEarly = true;
+
+	@Config.Comment({
+			"Amount of threads used to scan mod jars for mods and @MixinConfig classes",
+			"0 uses the amount of CPU cores (at most 8), 1 scans single threaded"
+	})
+	@Config.Name("Jar Scanner Threads")
+	@Config.RangeInt(min = 0, max = 64)
+	@Config.RequiresMcRestart
+	public static int jarScannerThreads = 0;
+
+	@Mod.EventBusSubscriber
 	private static class ConfigSyncHandler {
-		
 		@SubscribeEvent
 		public static void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
-			if(event.getModID().equals(FermiumBooter.MODID)) {
+			if(event.getModID().equals(FermiumBooter.MODID))
 				ConfigManager.sync(FermiumBooter.MODID, Config.Type.INSTANCE);
-			}
 		}
 	}
 }

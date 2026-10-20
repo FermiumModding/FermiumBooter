@@ -6,15 +6,17 @@ import java.util.List;
 public class MixinConfigInfo {
     public final String modId;
     public final String name;
+    public final String mixinJson;
     public final String earlyJson;
     public final String lateJson;
     public final boolean defaultValue;
 
     public final List<CompatInfo> compatInfos = new ArrayList<>();
 
-    public MixinConfigInfo(String modId, String name, String early, String late, boolean defaultValue) {
+    public MixinConfigInfo(String modId, String name, String mixinJson, String early, String late, boolean defaultValue) {
         this.modId = modId;
         this.name = name;
+        this.mixinJson = mixinJson;
         this.earlyJson = early;
         this.lateJson = late;
         this.defaultValue = defaultValue;

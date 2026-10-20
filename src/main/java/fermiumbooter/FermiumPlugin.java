@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import com.llamalad7.mixinextras.MixinExtrasBootstrap;
+import fermiumbooter.util.ClasspathModHandler;
 import fermiumbooter.util.CustomLogger;
 import fermiumbooter.util.FermiumJarScanner;
 import fermiumbooter.util.ForcedConfigHandler;
@@ -61,6 +62,9 @@ public class FermiumPlugin implements IFMLLoadingPlugin {
 	@Override
 	public void injectData(Map<String, Object> data) {
 		CustomLogger.init();
+
+		//Runs after every coremod is constructed but before mod discovery
+		ClasspathModHandler.fixIndevForceLoadAsModDependencies();
 
 		//Handle caching now if it hasn't already
 		FermiumJarScanner.handleCaching();

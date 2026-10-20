@@ -13,6 +13,8 @@ import java.util.function.Supplier;
 /**
  * Enqueue mixins to be applied or rejected from your IFMLLoadingPlugin class init
  * Includes options for disabling the mixin from a Supplier, and loading it either early or late
+ * Since 1.6.0, early mixins can also target any mod's classes, as long as "Add All Mods To Classpath Early" is enabled (default), allowing this toggle to always be on false
+ * Early suppliers run before mods are loaded, use FermiumRegistryAPI.isModPresent instead of Loader.isModLoaded there
  * Configuration name is the name of the json pointing to your mixin, such as "mixins.fermiumbooter.init.json"
  * For additional Forge @Config based mixin handling:
  * @see fermiumbooter.annotations.MixinConfig
@@ -113,6 +115,37 @@ public abstract class FermiumRegistryAPI {
      */
     public static boolean isModPresent(String modID) {
         return FermiumJarScanner.isModPresent(modID);
+    }
+
+    /**
+     * Utility method to check if a present mod's version is in a given range, usable when early mixins are applied
+     * @param modID the modID of the target mod
+     * @param versionRange version range in the same format as @Mod(dependencies=...), e.g. "[1.2,2.0)", or an exact version
+     * @return true if the mod is present and its version is in the range, false if it is absent, has no known version or the range is invalid
+     */
+    public static boolean isModVersionInRange(String modID, String versionRange) {
+        return FermiumJarScanner.isModVersionInRange(modID, versionRange);
+    }
+
+    /**
+     * Utility method to check if a present mod has a given name, to distinguish between forks using the same modID, usable when early mixins are applied
+     * @param modID the modID of the target mod
+     * @param modName the mod name to compare to, preferring the @Mod name over the mcmod.info name if both are present but not equal
+     * @return true if the mod is present and has exactly the given name
+     */
+    public static boolean isModNamed(String modID, String modName) {
+        return FermiumJarScanner.isModNamed(modID, modName);
+    }
+
+    /**
+     * Utility method combining isModPresent, isModNamed and isModVersionInRange, mirroring the parameters of @MixinConfig.CompatHandling
+     * @param modID the modID of the target mod
+     * @param modName if not null, the mod also has to have exactly this name
+     * @param versionRange if not null, the mod version also has to be in this range (an invalid range never matches)
+     * @return true if the mod is present and matches the given name and version range
+     */
+    public static boolean isModPresent(String modID, String modName, String versionRange) {
+        return FermiumJarScanner.isModPresent(modID, modName, versionRange);
     }
 
     /**
