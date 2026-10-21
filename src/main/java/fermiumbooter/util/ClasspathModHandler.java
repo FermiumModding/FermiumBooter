@@ -66,14 +66,15 @@ public abstract class ClasspathModHandler {
 		for(File jar : jars) {
 			String name = jar.getName();
 			if(!jar.isFile() || (!name.endsWith(".jar") && !name.endsWith(".zip"))) continue;
+			//Ignored jars are either already on the classpath (coremods/tweakers) or deliberately left off by Forge (wrong ModSide, non-FML ModType)
+			if(ignoredMods.contains(name)) continue;
 			try {
 				File canonicalJar = jar.getCanonicalFile();
 				//Also skips duplicates in the given jars
 				if(!existingPaths.add(canonicalJar.getPath())) continue;
 
 				Launch.classLoader.addURL(canonicalJar.toURI().toURL());
-				//Ignored jars are pure coremods/tweakers that Forge never loads as mods
-				if(!ignoredMods.contains(name) && !reparseableMods.contains(name)) {
+				if(!reparseableMods.contains(name)) {
 					reparseableMods.add(name);
 				}
 				added++;
