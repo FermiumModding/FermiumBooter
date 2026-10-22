@@ -3,6 +3,7 @@ package fermiumbooter.util;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraftforge.fml.relauncher.CoreModManager;
 import net.minecraftforge.fml.relauncher.FMLLaunchHandler;
+import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.libraries.Artifact;
 import net.minecraftforge.fml.relauncher.libraries.LibraryManager;
 import net.minecraftforge.fml.relauncher.libraries.Repository;
@@ -12,6 +13,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 /**
  * Handles which mod jars are on the LaunchClassLoader before mod construction and how Forge's mod discovery treats them
@@ -37,9 +40,32 @@ public abstract class ClasspathModHandler {
 					candidates.add(artifact.getFile());
 				}
 			}
+			candidates.removeIf(ClasspathModHandler::isForOtherSide);
 			modFileCandidates = candidates;
 		}
 		return modFileCandidates;
+	}
+
+	/**
+	 * Mirrors Forge's ModSide manifest check in CoreModManager.discoverCoreMods
+	 * Forge only adds those jars to the ignored mods once its coremod discovery reaches them, which can be after jar scanning ran (e.g. isModPresent called from an earlier coremod)
+	 * If they were put on the classpath anyway, crashes could happen
+	 */
+	private static boolean isForOtherSide(File file) {
+		if(!file.isFile()) return false;
+		String modSide;
+		try(JarFile jar = new JarFile(file)) {
+			Manifest manifest = jar.getManifest();
+			if(manifest == null) return false;
+			modSide = manifest.getMainAttributes().getValue(LibraryManager.MODSIDE);
+		}
+		catch(IOException ex) {
+			return false;
+		}
+		Side side = FMLLaunchHandler.side();
+		if(modSide == null || "BOTH".equals(modSide) || side.name().equals(modSide)) return false;
+		FermiumJarScanner.LOGGER.log(Level.INFO, "FermiumJarScanner skipping {}, it has ModSide {} and we're {}.", file.getName(), modSide, side.name());
+		return true;
 	}
 
 	public static void clearCaches() {
