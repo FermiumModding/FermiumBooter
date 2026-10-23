@@ -114,11 +114,12 @@ public abstract class FermiumJarScanner {
 		List<File> modFiles = ClasspathModHandler.getModFileCandidates();
 		Set<File> mixinConfigJars = new HashSet<>();
 		List<String> classloadEarlyClasses = new ArrayList<>();
+		Map<String, List<String>> modClassesByJar = new HashMap<>();
 
 		int threads = FermiumPlugin.CONFIG.get("general", "Jar Scanner Threads", FermiumBooterConfig.jarScannerThreads).getInt();
 		if(threads <= 0) threads = Math.min(Runtime.getRuntime().availableProcessors(), 8);
 		LOGGER.log(Level.INFO, "FermiumJarScanner scanning with {} thread(s).", threads);
-		AsmJarScanner.scan(modFiles, manualOverrides, mixinConfigJars, classloadEarlyClasses, threads);
+		AsmJarScanner.scan(modFiles, manualOverrides, mixinConfigJars, classloadEarlyClasses, modClassesByJar, threads);
 
 		//Mod Director classes+resources are gone by the time fermiumbooter is checking. This is probably not needed, but it also doesn't hurt
 		try {
@@ -135,7 +136,7 @@ public abstract class FermiumJarScanner {
 		if(FermiumPlugin.CONFIG.get("general", "Add All Mods To Classpath Early", FermiumBooterConfig.addAllModsToClasspathEarly).getBoolean())
 			earlyJars.addAll(modFiles);
 		earlyJars.addAll(mixinConfigJars);
-		ClasspathModHandler.addJarsToClasspath(earlyJars);
+		ClasspathModHandler.addJarsToClasspath(earlyJars, modClassesByJar);
 
 		for(String className : classloadEarlyClasses)
 			try {

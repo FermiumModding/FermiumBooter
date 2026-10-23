@@ -73,9 +73,10 @@ public abstract class AsmJarScanner {
 	};
 
 	/**
-	 * Fills mod infos and mixin toggles of FermiumJarScanner, collects jars containing @MixinConfig classes and classes to classload early
+	 * Fills mod infos and mixin toggles of FermiumJarScanner, collects jars containing @MixinConfig classes, classes to classload early
+	 * and the @Mod class names of each jar (keyed by canonical path)
 	 */
-	static void scan(List<File> modFiles, Map<String, String> manualOverrides, Set<File> mixinConfigJars, List<String> classloadEarlyClasses, int threads) {
+	static void scan(List<File> modFiles, Map<String, String> manualOverrides, Set<File> mixinConfigJars, List<String> classloadEarlyClasses, Map<String, List<String>> modClassesByJar, int threads) {
 		List<File> fileCandidates = new ArrayList<>(modFiles);
 
 		//Some mods aren't in the mods folder but on the classpath: launcher-injected ones (e.g. OptiFine installed as library, jar mods)
@@ -85,14 +86,7 @@ public abstract class AsmJarScanner {
 		//Same file can show up multiple times, e.g. coremods in both mods folder and classpath
 		Map<String, File> uniqueCandidates = new LinkedHashMap<>();
 		for(File candidate : fileCandidates) {
-			String key;
-			try {
-				key = candidate.getCanonicalPath();
-			}
-			catch(IOException ex) {
-				key = candidate.getAbsolutePath();
-			}
-			uniqueCandidates.putIfAbsent(key, candidate);
+			uniqueCandidates.putIfAbsent(canonicalPath(candidate), candidate);
 		}
 
 		//package -> modid, converted to entry paths
@@ -122,8 +116,22 @@ public abstract class AsmJarScanner {
 
 		//@Mod parsing has to be deferred until all mcmod.info files are read, so @Mod values are preferred
 		for(JarScanResult result : results) {
-			for(ASMClassVisitor modClass : result.modClasses)
+			if(result.modClasses.isEmpty()) continue;
+			List<String> classNames = new ArrayList<>();
+			for(ASMClassVisitor modClass : result.modClasses) {
 				FermiumJarScanner.addMod(modClass.modid, modClass.modVersion, modClass.modName);
+				classNames.add(modClass.className);
+			}
+			modClassesByJar.put(canonicalPath(result.modFile), classNames);
+		}
+	}
+
+	static String canonicalPath(File file) {
+		try {
+			return file.getCanonicalPath();
+		}
+		catch(IOException ex) {
+			return file.getAbsolutePath();
 		}
 	}
 

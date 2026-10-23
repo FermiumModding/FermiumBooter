@@ -76,8 +76,10 @@ public abstract class ClasspathModHandler {
 	 * Adds jars to the classpath early so their classes and resources can be read before mod construction.
 	 * Added jars are put on the reparseable coremod list, which makes Forge skip them in its classpath mod discovery.
 	 * They are then still discovered as mods in the normal mods folder pass, keeping mod load order and behavior unchanged.
+	 * Jars whose @Mod class is already provided by another classpath entry are skipped.
+	 * @param modClassesByJar @Mod class names per jar, keyed by canonical path
 	 */
-	static void addJarsToClasspath(Collection<File> jars) {
+	static void addJarsToClasspath(Collection<File> jars, Map<String, List<String>> modClassesByJar) {
 		Set<String> existingPaths = new HashSet<>();
 		for(URL url : Launch.classLoader.getURLs()) {
 			try {
@@ -99,6 +101,12 @@ public abstract class ClasspathModHandler {
 				//Also skips duplicates in the given jars
 				if(!existingPaths.add(canonicalJar.getPath())) continue;
 
+				URL providedBy = findProvidedModClass(modClassesByJar.get(canonicalJar.getPath()));
+				if(providedBy != null) {
+					FermiumJarScanner.LOGGER.log(Level.INFO, "FermiumJarScanner not adding {} to the classpath early, its mod class is already provided by {}.", name, providedBy);
+					continue;
+				}
+
 				Launch.classLoader.addURL(canonicalJar.toURI().toURL());
 				if(!reparseableMods.contains(name)) {
 					reparseableMods.add(name);
@@ -111,6 +119,19 @@ public abstract class ClasspathModHandler {
 			}
 		}
 		FermiumJarScanner.LOGGER.log(Level.INFO, "FermiumJarScanner added {} jars to the classpath early.", added);
+	}
+
+	/**
+	 * @return location of the first given class that can already be loaded, null if none can
+	 */
+	private static URL findProvidedModClass(List<String> classNames) {
+		if(classNames == null) return null;
+		for(String className : classNames) {
+			//getResource also asks the parent class loader, where loader-provided classes may live
+			URL url = Launch.classLoader.getResource(className.replace('.', '/') + ".class");
+			if(url != null) return url;
+		}
+		return null;
 	}
 
 	/**
