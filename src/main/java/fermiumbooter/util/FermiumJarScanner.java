@@ -70,7 +70,10 @@ public abstract class FermiumJarScanner {
 	
 	public static void handleCaching() {
 		if(!presentMods.isEmpty() || !mixinToggles.isEmpty()) return;
-		
+
+		//Other coremods can trigger caching before our injectData, jars still on the reparseable list would be skipped as known libraries
+		ClasspathModHandler.fixIndevForceLoadAsModDependencies();
+
 		LOGGER.log(Level.INFO, "FermiumJarScanner beginning jar searching.");
 		startJarSearching();
 		LOGGER.log(Level.INFO, "FermiumJarScanner finished jar searching, found {} ModIDs.", presentMods.size());

@@ -63,7 +63,8 @@ public class FermiumPlugin implements IFMLLoadingPlugin {
 	public void injectData(Map<String, Object> data) {
 		CustomLogger.init();
 
-		//Runs after every coremod is constructed but before mod discovery
+		//Runs after every coremod is constructed but before mod discovery. Still needed even though handleCaching also runs it:
+		//caching can happen before Mixin puts ForceLoadAsMod jars on the reparseable list, and handleCaching won't run again
 		ClasspathModHandler.fixIndevForceLoadAsModDependencies();
 
 		//Handle caching now if it hasn't already
