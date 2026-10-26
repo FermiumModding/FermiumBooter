@@ -11,6 +11,7 @@ import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Marker;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -70,6 +71,9 @@ public abstract class FermiumJarScanner {
 	
 	public static void handleCaching() {
 		if(!presentMods.isEmpty() || !mixinToggles.isEmpty()) return;
+
+		//Other coremods can trigger caching before our injectData, set up the log file first so compat warnings aren't lost
+		CustomLogger.init();
 
 		//Other coremods can trigger caching before our injectData, jars still on the reparseable list would be skipped as known libraries
 		ClasspathModHandler.fixIndevForceLoadAsModDependencies();
@@ -198,13 +202,14 @@ public abstract class FermiumJarScanner {
 
 				if(hasCompatIssue) {
 					if(compatInfo.warnIngame) warningCount++;
+					Marker marker = compatInfo.warnIngame ? CustomLogger.INGAME_WARNING : null;
 					if(compatInfo.disableMixin) {
 						shouldApply = false;
-						LOGGER.log(Level.ERROR, "FermiumMixinConfig config \"{}\" from {} disabled as incompatible {} {}: {}.", mixinConfig.name, mixinConfig.modId, (
+						LOGGER.log(Level.ERROR, marker, "FermiumMixinConfig config \"{}\" from {} disabled as incompatible {} {}: {}.", mixinConfig.name, mixinConfig.modId, (
 								compatInfo.desired ? "without" : "with"), compatInfo.modId, compatInfo.reason);
 					}
 					else {
-						LOGGER.log(Level.WARN, "FermiumMixinConfig config \"{}\" from {} may have issues {} {}: {}.", mixinConfig.name, mixinConfig.modId, (
+						LOGGER.log(Level.WARN, marker, "FermiumMixinConfig config \"{}\" from {} may have issues {} {}: {}.", mixinConfig.name, mixinConfig.modId, (
 								compatInfo.desired ? "without" : "with"), compatInfo.modId, compatInfo.reason);
 					}
 				}

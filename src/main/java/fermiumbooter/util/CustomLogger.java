@@ -3,6 +3,8 @@ package fermiumbooter.util;
 import fermiumbooter.config.FermiumBooterConfig;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Marker;
+import org.apache.logging.log4j.MarkerManager;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.FileAppender;
@@ -26,9 +28,11 @@ public class CustomLogger {
 
     public static final String LOGGER_NAME = "fermiumbooter";
     public static Path LOG_PATH;
+    public static final Marker INGAME_WARNING = MarkerManager.getMarker("FERMIUM_INGAME_WARNING");
     public static final Set<String> mixinErrors = Collections.synchronizedSet(new HashSet<>());
 
     public static void init() {
+        if(LOG_PATH != null) return;
         LOG_PATH = Paths.get("logs", LOGGER_NAME + ".log");
         try { Files.createDirectories(LOG_PATH.getParent()); }
         catch(IOException ignored) {}
@@ -43,7 +47,10 @@ public class CustomLogger {
                     @Override
                     public String toSerializable(LogEvent event) {
                         Throwable cause = getCause(event.getThrown());
-                        if(cause == null && event.getMessage().getFormattedMessage().startsWith("FermiumMixinConfig config")) return event.getMessage().getFormattedMessage().replaceFirst("FermiumMixinConfig config", "Fermium Config Warning:" + System.lineSeparator() + "\t") + System.lineSeparator();
+                        if(cause == null && event.getMessage().getFormattedMessage().startsWith("FermiumMixinConfig config")) {
+                            String prefix = INGAME_WARNING.equals(event.getMarker()) ? "Fermium Config Warning:" : "Fermium Config Note:";
+                            return event.getMessage().getFormattedMessage().replaceFirst("FermiumMixinConfig config", prefix + System.lineSeparator() + "\t") + System.lineSeparator();
+                        }
                         if(cause instanceof MixinException || cause instanceof MixinError) {
                             String simpleMessage = cause.getClass().getSimpleName() + ":" + System.lineSeparator() + "\t" + cause.getMessage().split("[\\r\\n]")[0] + System.lineSeparator();
                             if(FermiumBooterConfig.appendGeneralMixinExceptionsToCrashReports) mixinErrors.add(simpleMessage);
