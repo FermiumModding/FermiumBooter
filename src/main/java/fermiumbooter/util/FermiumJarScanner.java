@@ -75,6 +75,9 @@ public abstract class FermiumJarScanner {
 		//Other coremods can trigger caching before our injectData, set up the log file first so compat warnings aren't lost
 		CustomLogger.init();
 
+		//Before anything caches the mod file candidates, otherwise mods Mod Director installs are missed on first startup
+		ModDirectorCompat.runModDirectorEarly();
+
 		//Other coremods can trigger caching before our injectData, jars still on the reparseable list would be skipped as known libraries
 		ClasspathModHandler.fixIndevForceLoadAsModDependencies();
 
