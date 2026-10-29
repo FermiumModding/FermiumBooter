@@ -23,6 +23,8 @@ public @interface MixinConfig {
 	
 	/**
 	 * Annotates a boolean field annotated with @Config.Name that toggles if mixins should attempt to be loaded
+	 * The name (@Config.Name, or the field name if not present) must be unique within the config file, regardless of category.
+	 * For the same reason, the containing class should only be instantiated once in the config
 	 * mixinJson: Name of the mixin json to be loaded. Can target any class, vanilla or modded.
 	 * earlyMixin: Deprecated since 1.6.0, now an alias for mixinJson
 	 * lateMixin: Deprecated since 1.6.0, mixin json to be loaded late, so right before mods are constructed
