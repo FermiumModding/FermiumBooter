@@ -223,11 +223,11 @@ public abstract class FermiumJarScanner {
 			LOGGER.log(Level.INFO, "FermiumMixinConfig enqueueing mixin(s) parsed from annotated config {} from {}.", mixinConfig.name, mixinConfig.modId);
 			//Don't need to provide suppliers as enqueue will just be skipped in the first place instead
 			if(mixinConfig.mixinJson != null && !mixinConfig.mixinJson.isEmpty())
-				FermiumRegistryAPI.enqueueMixin(false, mixinConfig.mixinJson);
+				FermiumRegistryAPI.enqueueMixin(mixinConfig.mixinJson);
 			if(mixinConfig.earlyJson != null && !mixinConfig.earlyJson.isEmpty())
-				FermiumRegistryAPI.enqueueMixin(false, mixinConfig.earlyJson);
+				FermiumRegistryAPI.enqueueMixinInternal(false, mixinConfig.earlyJson);
 			if(mixinConfig.lateJson != null && !mixinConfig.lateJson.isEmpty())
-				FermiumRegistryAPI.enqueueMixin(true, mixinConfig.lateJson);
+				FermiumRegistryAPI.enqueueMixinInternal(true, mixinConfig.lateJson);
 		}
 	}
 
