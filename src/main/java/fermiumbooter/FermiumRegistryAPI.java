@@ -12,9 +12,10 @@ import java.util.function.Supplier;
 
 /**
  * Enqueue mixins to be applied or rejected from your IFMLLoadingPlugin class init
- * Includes options for disabling the mixin from a Supplier, and loading it either early or late
- * Since 1.6.0, early mixins can also target any mod's classes, as long as "Add All Mods To Classpath Early" is enabled (default), allowing this toggle to always be on false
- * Early suppliers run before mods are loaded, use FermiumRegistryAPI.isModPresent instead of Loader.isModLoaded there
+ * Includes options for disabling the mixin from a Supplier
+ * Since 1.6.0, early mixins can also target any mod's classes, as long as "Add All Mods To Classpath Early" is enabled (default), making the early/late distinction unnecessary
+ * Prefer the enqueueMixin overloads without a late parameter, the generic phase mirroring @MixinConfig.MixinToggle's mixinJson, over the deprecated overloads that take a late parameter
+ * Generic suppliers run before mods are loaded, use FermiumRegistryAPI.isModPresent instead of Loader.isModLoaded there
  * Configuration name is the name of the json pointing to your mixin, such as "mixins.fermiumbooter.init.json"
  * For additional Forge @Config based mixin handling:
  * @see fermiumbooter.annotations.MixinConfig
@@ -30,9 +31,53 @@ public abstract class FermiumRegistryAPI {
     /**
      * Register multiple mixin config resources at once to be applied
      * Enqueue mixins from your IFMLLoadingPlugin class init
+     * @param configurations - mixin config resource names
+     */
+    public static void enqueueMixin(String... configurations) {
+        for(String configuration : configurations) {
+            enqueueMixin(configuration);
+        }
+    }
+
+    /**
+     * Register a mixin config resource to be applied
+     * Enqueue mixins from your IFMLLoadingPlugin class init
+     * @param configuration - mixin config resource name
+     */
+    public static void enqueueMixin(String configuration) {
+        enqueueMixin(configuration, true);
+    }
+
+    /**
+     * Add a mixin config resource to be applied, with a toggle to apply or not
+     * Note: I do not think this specific method is necessary, but it's here just in case
+     * Enqueue mixins from your IFMLLoadingPlugin class init
+     * @param configuration - mixin config resource name
+     * @param enabled - whether to apply the mixin or not
+     */
+    public static void enqueueMixin(String configuration, boolean enabled) {
+        enqueueMixin(configuration, () -> enabled);
+    }
+
+    /**
+     * Add a mixin config resource to be applied, with a supplier to toggle application to be evaluated after all configs are registered
+     * Note: If multiple suppliers are given for a single configuration, it is evaluated as OR
+     * Enqueue mixins from your IFMLLoadingPlugin class init
+     * @param configuration - mixin config resource name
+     * @param supplier - supplier to determine whether to apply the mixin or not
+     */
+    public static void enqueueMixin(String configuration, Supplier<Boolean> supplier) {
+        enqueueMixinInternal(false, configuration, supplier);
+    }
+
+    /**
+     * Register multiple mixin config resources at once to be applied
+     * Enqueue mixins from your IFMLLoadingPlugin class init
+     * @deprecated since 1.6.4, early mixins can target any class, use {@link #enqueueMixin(String...)} instead
      * @param late - whether to apply the mixin late or early
      * @param configurations - mixin config resource names
      */
+    @Deprecated
     public static void enqueueMixin(boolean late, String... configurations) {
         for(String configuration : configurations) {
             enqueueMixin(late, configuration);
@@ -42,9 +87,11 @@ public abstract class FermiumRegistryAPI {
     /**
      * Register a mixin config resource to be applied
      * Enqueue mixins from your IFMLLoadingPlugin class init
+     * @deprecated since 1.6.4, early mixins can target any class, use {@link #enqueueMixin(String)} instead
      * @param late - whether to apply the mixin late or early
      * @param configuration - mixin config resource name
      */
+    @Deprecated
     public static void enqueueMixin(boolean late, String configuration) {
         enqueueMixin(late, configuration, true);
     }
@@ -53,10 +100,12 @@ public abstract class FermiumRegistryAPI {
      * Add a mixin config resource to be applied, with a toggle to apply or not
      * Note: I do not think this specific method is necessary, but it's here just in case
      * Enqueue mixins from your IFMLLoadingPlugin class init
+     * @deprecated since 1.6.4, early mixins can target any class, use {@link #enqueueMixin(String, boolean)} instead
      * @param late - whether to apply the mixin late or early
      * @param configuration - mixin config resource name
      * @param enabled - whether to apply the mixin or not
      */
+    @Deprecated
     public static void enqueueMixin(boolean late, String configuration, boolean enabled) {
         enqueueMixin(late, configuration, () -> enabled);
     }
@@ -65,11 +114,27 @@ public abstract class FermiumRegistryAPI {
      * Add a mixin config resource to be applied, with a supplier to toggle application to be evaluated after all like-timed configs are registered
      * Note: If multiple suppliers are given for a single configuration, it is evaluated as OR
      * Enqueue mixins from your IFMLLoadingPlugin class init
+     * @deprecated since 1.6.4, early mixins can target any class, use {@link #enqueueMixin(String, Supplier)} instead
      * @param late - whether to apply the mixin late or early
      * @param configuration - mixin config resource name
      * @param supplier - supplier to determine whether to apply the mixin or not
      */
+    @Deprecated
     public static void enqueueMixin(boolean late, String configuration, Supplier<Boolean> supplier) {
+        enqueueMixinInternal(late, configuration, supplier);
+    }
+
+    /**
+     * Internal Use; Do Not Use
+     */
+    public static void enqueueMixinInternal(boolean late, String configuration) {
+        enqueueMixinInternal(late, configuration, () -> true);
+    }
+
+    /**
+     * Internal Use; Do Not Use
+     */
+    public static void enqueueMixinInternal(boolean late, String configuration, Supplier<Boolean> supplier) {
         if(configuration == null || configuration.trim().isEmpty()) {
             LOGGER.log(Level.ERROR, "FermiumRegistryAPI supplied null or empty configuration name during mixin enqueue, ignoring.");
             return;
