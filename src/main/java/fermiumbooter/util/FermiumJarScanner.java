@@ -225,9 +225,9 @@ public abstract class FermiumJarScanner {
 			if(mixinConfig.mixinJson != null && !mixinConfig.mixinJson.isEmpty())
 				FermiumRegistryAPI.enqueueMixin(mixinConfig.mixinJson);
 			if(mixinConfig.earlyJson != null && !mixinConfig.earlyJson.isEmpty())
-				FermiumRegistryAPI.enqueueMixinInternal(false, mixinConfig.earlyJson);
+				FermiumRegistryAPI.enqueueMixin(mixinConfig.earlyJson);
 			if(mixinConfig.lateJson != null && !mixinConfig.lateJson.isEmpty())
-				FermiumRegistryAPI.enqueueMixinInternal(true, mixinConfig.lateJson);
+				FermiumRegistryAPI.enqueueMixin(true, mixinConfig.lateJson);
 		}
 	}
 
