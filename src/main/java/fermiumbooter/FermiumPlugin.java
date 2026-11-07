@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 
 import com.llamalad7.mixinextras.MixinExtrasBootstrap;
 import fermiumbooter.util.ClasspathModHandler;
+import fermiumbooter.util.CustomLogger;
 import fermiumbooter.util.FermiumJarScanner;
 import fermiumbooter.util.ForcedConfigHandler;
 import net.minecraftforge.common.config.Configuration;
@@ -86,7 +87,7 @@ public class FermiumPlugin implements IFMLLoadingPlugin {
 			}
 			//Add configuration
 			if(enabled) {
-				LOGGER.log(Level.INFO, "FermiumBooter adding \"{}\" for early mixin application.", entry.getKey());
+				CustomLogger.info(LOGGER, "FermiumBooter adding \"{}\" for early mixin application.", entry.getKey());
 				Mixins.addConfiguration(entry.getKey());
 			}
 		}

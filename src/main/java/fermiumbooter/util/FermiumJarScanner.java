@@ -220,7 +220,7 @@ public abstract class FermiumJarScanner {
 		}
 
 		if(shouldApply) {
-			LOGGER.log(Level.INFO, "FermiumMixinConfig enqueueing mixin(s) parsed from annotated config {} from {}.", mixinConfig.name, mixinConfig.modId);
+			CustomLogger.info(LOGGER, "FermiumMixinConfig enqueueing mixin(s) parsed from annotated config {} from {}.", mixinConfig.name, mixinConfig.modId);
 			//Don't need to provide suppliers as enqueue will just be skipped in the first place instead
 			if(mixinConfig.mixinJson != null && !mixinConfig.mixinJson.isEmpty())
 				FermiumRegistryAPI.enqueueMixin(mixinConfig.mixinJson);

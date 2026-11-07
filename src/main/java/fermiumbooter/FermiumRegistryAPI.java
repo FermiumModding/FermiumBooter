@@ -1,5 +1,6 @@
 package fermiumbooter;
 
+import fermiumbooter.util.CustomLogger;
 import fermiumbooter.util.FermiumJarScanner;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -131,12 +132,12 @@ public abstract class FermiumRegistryAPI {
         }
         //Process rejects prior to application
         if(late) {
-            LOGGER.log(Level.INFO, "FermiumRegistryAPI supplied \"{}\" for late mixin enqueue, adding.", configuration);
+            CustomLogger.info(LOGGER, "FermiumRegistryAPI supplied \"{}\" for late mixin enqueue, adding.", configuration);
             lateMixins.computeIfAbsent(configuration, k -> new ArrayList<>());
             lateMixins.get(configuration).add(supplier);
         }
         else {
-            LOGGER.log(Level.INFO, "FermiumRegistryAPI supplied \"{}\" for early mixin enqueue, adding.", configuration);
+            CustomLogger.info(LOGGER, "FermiumRegistryAPI supplied \"{}\" for early mixin enqueue, adding.", configuration);
             earlyMixins.computeIfAbsent(configuration, k -> new ArrayList<>());
             earlyMixins.get(configuration).add(supplier);
         }

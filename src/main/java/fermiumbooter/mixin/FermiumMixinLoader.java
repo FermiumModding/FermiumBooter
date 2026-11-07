@@ -2,6 +2,7 @@ package fermiumbooter.mixin;
 
 import fermiumbooter.FermiumPlugin;
 import fermiumbooter.FermiumRegistryAPI;
+import fermiumbooter.util.CustomLogger;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.ModClassLoader;
 import net.minecraftforge.fml.common.ModContainer;
@@ -69,7 +70,7 @@ public abstract class FermiumMixinLoader {
             }
             //Add configuration
             if(enabled) {
-                FermiumPlugin.LOGGER.log(Level.INFO, "FermiumBooter adding \"{}\" for late mixin application.", entry.getKey());
+                CustomLogger.info(FermiumPlugin.LOGGER, "FermiumBooter adding \"{}\" for late mixin application.", entry.getKey());
                 Mixins.addConfiguration(entry.getKey());
             }
         }

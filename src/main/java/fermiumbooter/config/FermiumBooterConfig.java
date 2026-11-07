@@ -70,6 +70,14 @@ public class FermiumBooterConfig {
 	@Config.RequiresMcRestart
 	public static int jarScannerThreads = 0;
 
+	@Config.Comment({
+			"Writes FermiumRegistryAPI and per-config mixin enqueue/application info logs only to logs/fermiumbooter.log instead of the game log",
+			"Warnings, errors and mixin removals still go to the game log"
+	})
+	@Config.Name("Log Info Only To FB Log")
+	@Config.RequiresMcRestart
+	public static boolean logMixinInfoOnlyToFermiumLog = false;
+
 	@Mod.EventBusSubscriber
 	private static class ConfigSyncHandler {
 		@SubscribeEvent
