@@ -61,6 +61,7 @@ dependencies {
 
     //https://github.com/fonnymunkey/SpongeMixin
     //Temporarily shadow patched version of 0.8.7 that fixes compat with old mods, return to mainline when 0.8.8 merges https://github.com/SpongePowered/Mixin/pull/678
+    //Also includes backported FabricMC/Mixin fixes (initialiser arrays/jumps etc.) https://github.com/fonnymunkey/SpongeMixin/pull/1
     shadow files('libs/mixin-0.8.7.jar')
     implementation files('libs/mixin-0.8.7.jar')
     annotationProcessor files('libs/mixin-0.8.7-processor.jar')
