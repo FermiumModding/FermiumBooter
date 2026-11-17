@@ -9,7 +9,7 @@ plugins {
 
 version = mod_version
 group = mod_id
-base.archivesName = '`' + mod_name
+base.archivesName = '00' + mod_name
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 java.withSourcesJar()
